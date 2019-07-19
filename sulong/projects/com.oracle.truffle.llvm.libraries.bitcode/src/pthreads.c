@@ -39,6 +39,7 @@
 // mutexattr_destroy, mutexattr_init, mutexattr_settype
 // cond_destroy, cond_init, cond_broadcast, cond_signal, cond_wait
 // rwlock_destroy, rwlock_init, rwlock_rdlock, rwlock_tryrdlock, rwlock_wrlock, rwlock_trywrlock, rwlock_unlock
+// and some other stuff by making it a comment
 int __sulong_getEBUSY() {
 	return EBUSY;
 }
@@ -70,9 +71,9 @@ long __sulong_getSeconds(struct timespec *time) {
 	return time->tv_sec;
 }
 
-int pthread_attr_destroy(pthread_attr_t *attr) {
-  ERR_UNSUPPORTED(pthread_attr_destroy);
-}
+//int pthread_attr_destroy(pthread_attr_t *attr) {
+//  ERR_UNSUPPORTED(pthread_attr_destroy);
+//}
 int pthread_attr_getdetachstate(const pthread_attr_t *attr, int *detachstate) {
   ERR_UNSUPPORTED(pthread_attr_getdetachstate);
 }
@@ -97,12 +98,12 @@ int pthread_attr_getstackaddr(const pthread_attr_t *attr, void **stackaddr) {
 int pthread_attr_getstacksize(const pthread_attr_t *restrict attr, size_t *restrict stacksize) {
   ERR_UNSUPPORTED(pthread_attr_getstacksize);
 }
-int pthread_attr_init(pthread_attr_t *attr) {
-  ERR_UNSUPPORTED(pthread_attr_init);
-}
-int pthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate) {
-  ERR_UNSUPPORTED(pthread_attr_setdetachstate);
-}
+//int pthread_attr_init(pthread_attr_t *attr) {
+//  ERR_UNSUPPORTED(pthread_attr_init);
+//}
+//int pthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate) {
+//  ERR_UNSUPPORTED(pthread_attr_setdetachstate);
+//}
 int pthread_attr_setguardsize(pthread_attr_t *attr, size_t guardsize) {
   ERR_UNSUPPORTED(pthread_attr_setguardsize);
 }
@@ -124,9 +125,9 @@ int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stackaddr) {
 int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize) {
   ERR_UNSUPPORTED(pthread_attr_setstacksize);
 }
-int pthread_cancel(pthread_t thread) {
-  ERR_UNSUPPORTED(pthread_cancel);
-}
+//int pthread_cancel(pthread_t thread) {
+//  ERR_UNSUPPORTED(pthread_cancel);
+//}
 // void  pthread_cleanup_push(void*, void *);
 // void  pthread_cleanup_pop(int);
 int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime) {
@@ -159,12 +160,12 @@ int pthread_getconcurrency(void) {
 int pthread_getschedparam(pthread_t thread, int *restrict policy, struct sched_param *restrict param) {
   ERR_UNSUPPORTED(pthread_getschedparam);
 }
-void *pthread_getspecific(pthread_key_t key) {
-  ERR_UNSUPPORTED(pthread_getspecific);
-}
-int pthread_key_create(pthread_key_t *key, void (*destructor)(void *)) {
-  ERR_UNSUPPORTED(pthread_key_create);
-}
+//void *pthread_getspecific(pthread_key_t key) {
+//  ERR_UNSUPPORTED(pthread_getspecific);
+//}
+//int pthread_key_create(pthread_key_t *key, void (*destructor)(void *)) {
+//  ERR_UNSUPPORTED(pthread_key_create);
+//}
 int pthread_key_delete(pthread_key_t key) {
   ERR_UNSUPPORTED(pthread_key_delete);
 }
@@ -222,9 +223,9 @@ int pthread_setconcurrency(int new_level) {
 int pthread_setschedparam(pthread_t thread, int policy, const struct sched_param *param) {
   ERR_UNSUPPORTED(pthread_setschedparam);
 }
-int pthread_setspecific(pthread_key_t key, const void *value) {
-  ERR_UNSUPPORTED(pthread_setspecific);
-}
+//int pthread_setspecific(pthread_key_t key, const void *value) {
+//  ERR_UNSUPPORTED(pthread_setspecific);
+//}
 void pthread_testcancel(void) {
   // do nothing - this is fine as long as no other pthread methods are supported
 }
