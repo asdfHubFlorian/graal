@@ -97,7 +97,9 @@ public final class LLVMContext {
     public final ConcurrentMap<Long, Object> retValStorage;
     public final ConcurrentMap<Long, Thread> threadStorage;
     public final ConcurrentMap<LLVMPointer, Object> onceStorage;
+    public final ConcurrentMap<Integer, ConcurrentMap<Long, LLVMPointer>> keyStorage;
     public CallTarget pthreadCallTarget = null;
+    public int curKeyVal;
     // my code end
 
     private final List<Path> libraryPaths = new ArrayList<>();
@@ -231,6 +233,8 @@ public final class LLVMContext {
         this.retValStorage = new ConcurrentHashMap<>();
         this.threadStorage = new ConcurrentHashMap<>();
         this.onceStorage = new ConcurrentHashMap<>();
+        this.keyStorage = new ConcurrentHashMap<>();
+        this.curKeyVal = 1;
     }
 
     private static final class InitializeContextNode extends LLVMStatementNode {

@@ -14,6 +14,8 @@ import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMStoreNode;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 public class LLVMPThreadKeyIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "key")
     @NodeChild(type = LLVMExpressionNode.class, value = "destructor")
@@ -28,9 +30,13 @@ public class LLVMPThreadKeyIntrinsics {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 store = ctxRef.get().getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I32);
             }
-            // TODO: store the current value in key, and increment this value by 1 (atomic int in storage e. g.)
-            store.executeWithTarget(key, 1);
-            // TODO: add new key-value to key-storage-thing, will be hashmap(key-value->key-map) full of hashmap(thread-id->specific-value)
+            synchronized (ctxRef.get()) {
+                // TODO: store the current value in key, and increment this value by 1 (atomic int in storage e. g.)
+                store.executeWithTarget(key, ctxRef.get().curKeyVal);
+                // TODO: add new key-value to key-storage-thing, will be hashmap(key-value->key-map) full of hashmap(thread-id->specific-value)
+                ctxRef.get().keyStorage.put(ctxRef.get().curKeyVal, new ConcurrentHashMap<>());
+                ctxRef.get().curKeyVal++;
+            }
             return 0;
         }
     }
@@ -40,9 +46,37 @@ public class LLVMPThreadKeyIntrinsics {
         // no relevant error code handling here
         @Specialization
         protected LLVMPointer doIntrinsic(VirtualFrame frame, int key, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            int i = 15;
             // TODO: get specific-value (which is a pointer) from my key-storage in context and return that
-            return null;
+            if (ctxRef.get().keyStorage.containsKey(key) && ctxRef.get().keyStorage.get(key).containsKey(Thread.currentThread().getId())) {
+                return ctxRef.get().keyStorage.get(key).get(Thread.currentThread().getId());
+            }
+            // TODO: there is a problem here, how to return a null pointer?
+            return new LLVMPointer() {
+                @Override
+                public boolean isNull() {
+                    return true;
+                }
+
+                @Override
+                public LLVMPointer copy() {
+                    return this;
+                }
+
+                @Override
+                public LLVMPointer increment(long offset) {
+                    return null;
+                }
+
+                @Override
+                public LLVMInteropType getExportType() {
+                    return null;
+                }
+
+                @Override
+                public LLVMPointer export(LLVMInteropType newType) {
+                    return null;
+                }
+            };
         }
     }
 
@@ -53,6 +87,10 @@ public class LLVMPThreadKeyIntrinsics {
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, int key, LLVMPointer value, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
             // TODO: save key-value->specific-value in my storage for the calling thread
+            if (!ctxRef.get().keyStorage.containsKey(key)) {
+                return CConstants.getEINVAL();
+            }
+            ctxRef.get().keyStorage.get(key).put(Thread.currentThread().getId(), value);
             return 0;
         }
     }
