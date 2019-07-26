@@ -6,12 +6,16 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.llvm.nodes.intrinsics.llvm.LLVMBuiltin;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
+import com.oracle.truffle.llvm.runtime.LLVMNativeFunctions;
 import com.oracle.truffle.llvm.runtime.interop.access.LLVMInteropType;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMStoreNode;
+import com.oracle.truffle.llvm.runtime.pointer.LLVMManagedPointer;
+import com.oracle.truffle.llvm.runtime.pointer.LLVMNativePointer;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,32 +55,7 @@ public class LLVMPThreadKeyIntrinsics {
                 return ctxRef.get().keyStorage.get(key).get(Thread.currentThread().getId());
             }
             // TODO: there is a problem here, how to return a null pointer?
-            return new LLVMPointer() {
-                @Override
-                public boolean isNull() {
-                    return true;
-                }
-
-                @Override
-                public LLVMPointer copy() {
-                    return this;
-                }
-
-                @Override
-                public LLVMPointer increment(long offset) {
-                    return null;
-                }
-
-                @Override
-                public LLVMInteropType getExportType() {
-                    return null;
-                }
-
-                @Override
-                public LLVMPointer export(LLVMInteropType newType) {
-                    return null;
-                }
-            };
+            return LLVMNativePointer.createNull();
         }
     }
 

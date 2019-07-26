@@ -7,6 +7,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
+import com.oracle.truffle.llvm.runtime.LLVMExitException;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 import com.oracle.truffle.llvm.runtime.memory.LLVMStack;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
@@ -41,6 +42,8 @@ public class UtilStartThread {
                 ctxRef.get().retValStorage.put(Thread.currentThread().getId(), retVal);
             } catch (PThreadExitException e) {
 
+            } catch (LLVMExitException e) {
+                // TODO: maybe remove, just here bc pigz does not exit otherwise
             }
         }
     }
