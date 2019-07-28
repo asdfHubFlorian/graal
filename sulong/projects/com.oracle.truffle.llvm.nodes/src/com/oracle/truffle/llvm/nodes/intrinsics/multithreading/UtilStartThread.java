@@ -20,11 +20,14 @@ public class UtilStartThread {
         private Object startRoutine;
         private Object arg;
         private TruffleLanguage.ContextReference<LLVMContext> ctxRef;
+        private boolean exit;
+        private LLVMExitException exitException;
 
         public InitStartOfNewThread(Object startRoutine, Object arg, TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
             this.startRoutine = startRoutine;
             this.arg = arg;
             this.ctxRef = ctxRef;
+            this.exit = false;
         }
 
         @Override
@@ -43,8 +46,19 @@ public class UtilStartThread {
             } catch (PThreadExitException e) {
 
             } catch (LLVMExitException e) {
-                // TODO: maybe remove, just here bc pigz does not exit otherwise
+                // TODO: exit everything from here
+                exit = true;
+                exitException = e;
+                // ctxRef.get().shutdownThreads();
             }
+        }
+
+        public boolean exitThrown() {
+            return exit;
+        }
+
+        public LLVMExitException getExitException() {
+            return exitException;
         }
     }
 

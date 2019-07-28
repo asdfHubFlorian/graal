@@ -43,7 +43,8 @@ public class LLVMPThreadThreadIntrinsics {
                 store = ctxRef.get().getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I64);
             }
             // create thread for execution of function
-            Thread t = ctxRef.get().getEnv().createThread(new UtilStartThread.InitStartOfNewThread(startRoutine, arg, ctxRef));
+            UtilStartThread.InitStartOfNewThread init = new UtilStartThread.InitStartOfNewThread(startRoutine, arg, ctxRef);
+            Thread t = ctxRef.get().getEnv().createThread(init);
             // store cur id in thread var
             store.executeWithTarget(thread, t.getId());
             // store thread with thread id in context
