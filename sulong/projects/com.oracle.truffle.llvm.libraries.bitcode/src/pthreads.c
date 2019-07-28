@@ -149,10 +149,10 @@ int pthread_detach(pthread_t thread) {
   ERR_UNSUPPORTED(pthread_detach);
 }
 // this function might be defined as a macro
-#ifndef pthread_equal
-int pthread_equal(pthread_t t1, pthread_t t2) {
-  ERR_UNSUPPORTED(pthread_equal);
-}
+//#ifndef pthread_equal
+//int pthread_equal(pthread_t t1, pthread_t t2) {
+//  ERR_UNSUPPORTED(pthread_equal);
+//}
 #endif
 int pthread_getconcurrency(void) {
   ERR_UNSUPPORTED(pthread_getconcurrency);
