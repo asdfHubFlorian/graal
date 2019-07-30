@@ -153,7 +153,7 @@ int pthread_detach(pthread_t thread) {
 //int pthread_equal(pthread_t t1, pthread_t t2) {
 //  ERR_UNSUPPORTED(pthread_equal);
 //}
-#endif
+//#endif
 int pthread_getconcurrency(void) {
   ERR_UNSUPPORTED(pthread_getconcurrency);
 }
