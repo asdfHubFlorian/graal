@@ -644,7 +644,7 @@ suite = {
       "buildRef" : True,
       "buildEnv" : {
         "SUITE_CPPFLAGS" : "-I<path:SULONG_LEGACY>/include",
-        "SUITE_LDFLAGS" : "-lm -lgmp",
+        "SUITE_LDFLAGS" : "-lm -lgmp -lpthread",
       },
       "dependencies" : [
         "SULONG_TEST",

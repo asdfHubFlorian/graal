@@ -76,6 +76,7 @@ public final class ShootoutsSuite extends BaseSulongOnlyHarness {
         runs.put(new File(dir + "/spectralnorm/spectralnorm.gcc-2.gcc" + benchmarkSuffix).toPath(), new RunConfiguration(0, null, new String[]{"150"}));
         runs.put(new File(dir + "/pidigits/pidigits.cint-4.cint" + benchmarkSuffix).toPath(), new RunConfiguration(0, null, new String[]{"10000"}));
         runs.put(new File(dir + "/pidigits/pidigits.gcc" + benchmarkSuffix).toPath(), new RunConfiguration(0, null, new String[]{"10000"}));
+	runs.put(new File(dir + "/threadring/threadring.gcc" + benchmarkSuffix).toPath(), new RunConfiguration(0, null, new String[]{"150"}));
 
         return runs.keySet().stream().map(k -> new Object[]{k, runs.get(k), k.toString().substring(dir.length())}).collect(Collectors.toList());
 

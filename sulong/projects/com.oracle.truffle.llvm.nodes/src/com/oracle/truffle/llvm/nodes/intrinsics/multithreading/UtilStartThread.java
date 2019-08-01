@@ -50,6 +50,8 @@ public class UtilStartThread {
                 exit = true;
                 exitException = e;
                 // ctxRef.get().shutdownThreads();
+                // ctxRef.get().shutdownThreads();
+                System.exit(e.getReturnCode());
             }
         }
 
