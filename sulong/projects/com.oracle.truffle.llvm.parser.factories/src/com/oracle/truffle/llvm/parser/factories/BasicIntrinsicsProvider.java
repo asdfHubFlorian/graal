@@ -343,6 +343,13 @@ public class BasicIntrinsicsProvider implements LLVMIntrinsicProvider, ContextEx
         add("@pthread_my_test", (args, context) -> LLVMPThreadIntrinsicsFactory.LLVMPThreadMyTestNodeGen.create(args.get(1), null));
         // just my test function
 
+        add("@pthread_attr_init", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadAttrInitNodeGen.create(args.get(1), null));
+
+        add("@pthread_attr_destroy", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadAttrDestroyNodeGen.create(args.get(1), null));
+
+        add("@pthread_attr_setdetachstate", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadAttrSetdetachstateNodeGen.create(args.get(1), args.get(2), null));
+        // EINVAL if detachstate is not valid
+
         add("@pthread_mutexattr_destroy", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrDestroyNodeGen.create(args.get(1), null));
         // error codes: none relevant
 

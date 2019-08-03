@@ -196,9 +196,9 @@ int pthread_mutexattr_setprotocol(pthread_mutexattr_t *attr, int protocol) {
 int pthread_mutexattr_setpshared(pthread_mutexattr_t *attr, int pshared) {
   ERR_UNSUPPORTED(pthread_mutexattr_setpshared);
 }
-int pthread_once(pthread_once_t *once_control, void (*init_routine)(void)) {
-  ERR_UNSUPPORTED(pthread_once);
-}
+//int pthread_once(pthread_once_t *once_control, void (*init_routine)(void)) {
+//  ERR_UNSUPPORTED(pthread_once);
+//}
 int pthread_rwlockattr_destroy(pthread_rwlockattr_t *attr) {
   ERR_UNSUPPORTED(pthread_rwlockattr_destroy);
 }

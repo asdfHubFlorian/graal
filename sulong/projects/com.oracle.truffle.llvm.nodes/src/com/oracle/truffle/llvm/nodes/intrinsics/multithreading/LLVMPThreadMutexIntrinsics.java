@@ -72,6 +72,10 @@ public class LLVMPThreadMutexIntrinsics {
 
         public boolean unlock() {
             if (!internLock.isHeldByCurrentThread()) {
+                // in spec undefined, my native implementation on ubuntu just returns 0 for unlocking not-locked / not-owned default/normal mutexes
+                if (this.type == MutexType.DEFAULT_NORMAL) {
+                    return true;
+                }
                 return false;
             }
             internLock.unlock();
@@ -91,7 +95,7 @@ public class LLVMPThreadMutexIntrinsics {
     public abstract static class LLVMPThreadMutexattrInit extends LLVMBuiltin {
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, LLVMPointer attr) {
-            // seems like pthread_mutexattr_t is just an int in the header / lib sulong uses
+            // seems like pthread_mutexattr_t is just an int in the header / lib sulong (on my ubuntu 18.04) uses
             // so no need to init here
             return 0;
         }

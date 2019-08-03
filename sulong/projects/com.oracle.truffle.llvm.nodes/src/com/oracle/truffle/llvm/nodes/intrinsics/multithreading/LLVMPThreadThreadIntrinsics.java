@@ -132,4 +132,29 @@ public class LLVMPThreadThreadIntrinsics {
             return Thread.currentThread().getId();
         }
     }
+
+    @NodeChild(type = LLVMExpressionNode.class, value = "attr")
+    public abstract static class LLVMPThreadAttrDestroy extends LLVMBuiltin {
+        @Specialization
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer attr) {
+            return 0;
+        }
+    }
+
+    @NodeChild(type = LLVMExpressionNode.class, value = "attr")
+    public abstract static class LLVMPThreadAttrInit extends LLVMBuiltin {
+        @Specialization
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer attr) {
+            return 0; // TODO: maybe new storage for attrs and support some stuff like detach and priority?
+        }
+    }
+
+    @NodeChild(type = LLVMExpressionNode.class, value = "attr")
+    @NodeChild(type = LLVMExpressionNode.class, value = "detachstate")
+    public abstract static class LLVMPThreadAttrSetdetachstate extends LLVMBuiltin {
+        @Specialization
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer attr, int detachstate) {
+            return 0;
+        }
+    }
 }
