@@ -32,8 +32,11 @@ public class UtilStartThread {
 
         @Override
         public void run() {
-            if (ctxRef.get().pthreadCallTarget == null) {
-                ctxRef.get().pthreadCallTarget = Truffle.getRuntime().createCallTarget(new RunNewThreadNode(LLVMLanguage.getLanguage()));
+            // synchronized because i once got a null pointer exception from "Object retVal = ctxRef.get().pthreadCallTarget.call(startRoutine, arg);"
+            synchronized (ctxRef.get()) {
+                if (ctxRef.get().pthreadCallTarget == null) {
+                    ctxRef.get().pthreadCallTarget = Truffle.getRuntime().createCallTarget(new RunNewThreadNode(LLVMLanguage.getLanguage()));
+                }
             }
             // pthread_exit throws a control flow exception to stop the thread
             try {
@@ -46,10 +49,8 @@ public class UtilStartThread {
             } catch (PThreadExitException e) {
 
             } catch (LLVMExitException e) {
-                // TODO: exit everything from here
                 exit = true;
                 exitException = e;
-                // ctxRef.get().shutdownThreads();
                 // ctxRef.get().shutdownThreads();
                 System.exit(e.getReturnCode());
             }

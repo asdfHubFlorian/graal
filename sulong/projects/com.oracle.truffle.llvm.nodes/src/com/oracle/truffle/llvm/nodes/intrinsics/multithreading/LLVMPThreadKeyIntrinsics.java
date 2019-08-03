@@ -35,9 +35,8 @@ public class LLVMPThreadKeyIntrinsics {
                 store = ctxRef.get().getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I32);
             }
             synchronized (ctxRef.get()) {
-                // TODO: store the current value in key, and increment this value by 1 (atomic int in storage e. g.)
                 store.executeWithTarget(key, ctxRef.get().curKeyVal);
-                // TODO: add new key-value to key-storage-thing, will be hashmap(key-value->key-map) full of hashmap(thread-id->specific-value)
+                // add new key-value to key-storage-thing, will be hashmap(key-value->key-map) full of hashmap(thread-id->specific-value)
                 ctxRef.get().keyStorage.put(ctxRef.get().curKeyVal, new ConcurrentHashMap<>());
                 ctxRef.get().curKeyVal++;
             }
@@ -54,7 +53,6 @@ public class LLVMPThreadKeyIntrinsics {
             if (ctxRef.get().keyStorage.containsKey(key) && ctxRef.get().keyStorage.get(key).containsKey(Thread.currentThread().getId())) {
                 return ctxRef.get().keyStorage.get(key).get(Thread.currentThread().getId());
             }
-            // TODO: there is a problem here, how to return a null pointer?
             return LLVMNativePointer.createNull();
         }
     }
