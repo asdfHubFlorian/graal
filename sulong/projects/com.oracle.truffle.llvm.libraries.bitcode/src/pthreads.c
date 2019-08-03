@@ -125,9 +125,9 @@ int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stackaddr) {
 int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize) {
   ERR_UNSUPPORTED(pthread_attr_setstacksize);
 }
-//int pthread_cancel(pthread_t thread) {
-//  ERR_UNSUPPORTED(pthread_cancel);
-//}
+int pthread_cancel(pthread_t thread) {
+  ERR_UNSUPPORTED(pthread_cancel);
+}
 // void  pthread_cleanup_push(void*, void *);
 // void  pthread_cleanup_pop(int);
 int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime) {
