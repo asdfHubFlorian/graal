@@ -89,7 +89,8 @@ public class LLVMPThreadThreadIntrinsics {
                 // get return value
                 Object retVal = UtilAccess.getLongObj(ctxRef.get().retValStorage, th);
                 // store return value at ptr
-                if (!threadReturn.isNull() && retVal != null) {
+                // TODO: test if storing null is possible
+                if (!threadReturn.isNull()) {
                     storeNode.executeWithTarget(threadReturn, retVal);
                 }
             } catch (Exception e) {
