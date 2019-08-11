@@ -37,7 +37,9 @@ public class LLVMPThreadKeyIntrinsics {
             synchronized (ctxRef.get()) {
                 store.executeWithTarget(key, ctxRef.get().curKeyVal);
                 // add new key-value to key-storage-thing, will be hashmap(key-value->key-map) full of hashmap(thread-id->specific-value)
+                // TODO: use util function with boundary
                 ctxRef.get().keyStorage.put(ctxRef.get().curKeyVal, new ConcurrentHashMap<>());
+                ctxRef.get().destructorStorage.put(ctxRef.get().curKeyVal, destructor);
                 ctxRef.get().curKeyVal++;
             }
             return 0;
@@ -49,7 +51,6 @@ public class LLVMPThreadKeyIntrinsics {
         // no relevant error code handling here
         @Specialization
         protected LLVMPointer doIntrinsic(VirtualFrame frame, int key, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            // TODO: get specific-value (which is a pointer) from my key-storage in context and return that
             if (ctxRef.get().keyStorage.containsKey(key) && ctxRef.get().keyStorage.get(key).containsKey(Thread.currentThread().getId())) {
                 return ctxRef.get().keyStorage.get(key).get(Thread.currentThread().getId());
             }
@@ -63,7 +64,6 @@ public class LLVMPThreadKeyIntrinsics {
         // [EINVAL] if key is not valid
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, int key, LLVMPointer value, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            // TODO: save key-value->specific-value in my storage for the calling thread
             if (!ctxRef.get().keyStorage.containsKey(key)) {
                 return CConstants.getEINVAL();
             }

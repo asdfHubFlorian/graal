@@ -62,7 +62,6 @@ void* print_message_function(void* ptr)
   printf("%s \n", message);
   int* ret = malloc(sizeof(int));
   *ret = 35;
-  pthread_exit(NULL);  
 }
 
 void* test_func1(void* ptr)
@@ -79,7 +78,6 @@ void* test_func1(void* ptr)
   }
   printf("f1 %d\n", *sum);
   pthread_exit(sum);
-  return 0;
 }
 
 void* test_func2(void* ptr)
@@ -96,6 +94,5 @@ void* test_func2(void* ptr)
   }
   printf("f2 %d\n", *sum);
   pthread_exit(sum);
-  return 0;
 }
 

@@ -98,6 +98,7 @@ public final class LLVMContext {
     public final ConcurrentMap<Long, Thread> threadStorage;
     public final List<LLVMPointer> onceStorage;
     public final ConcurrentMap<Integer, ConcurrentMap<Long, LLVMPointer>> keyStorage;
+    public final ConcurrentMap<Integer, LLVMPointer> destructorStorage;
     public CallTarget pthreadCallTarget = null;
     public int curKeyVal;
     // my code end
@@ -234,6 +235,7 @@ public final class LLVMContext {
         this.threadStorage = new ConcurrentHashMap<>();
         this.onceStorage = new ArrayList<>();
         this.keyStorage = new ConcurrentHashMap<>();
+        this.destructorStorage = new ConcurrentHashMap<>();
         this.curKeyVal = 1;
     }
 

@@ -9,6 +9,11 @@ import java.util.concurrent.ConcurrentMap;
 
 public class UtilAccess {
     @CompilerDirectives.TruffleBoundary
+    public static void putIntObj(ConcurrentMap<Integer, Object> c, int key, Object value) {
+        c.put(key, value);
+    }
+
+    @CompilerDirectives.TruffleBoundary
     public static void putLLVMPointerObj(ConcurrentMap<LLVMPointer, Object> c, LLVMPointer key, Object value) {
         c.put(key, value);
     }
@@ -24,6 +29,11 @@ public class UtilAccess {
     }
 
     @CompilerDirectives.TruffleBoundary
+    static Object getIntObj(ConcurrentMap<Integer, Object> c, LLVMPointer key) {
+        return c.get(key);
+    }
+
+    @CompilerDirectives.TruffleBoundary
     static Object getLLVMPointerObj(ConcurrentMap<LLVMPointer, Object> c, LLVMPointer key) {
         return c.get(key);
     }
@@ -36,6 +46,11 @@ public class UtilAccess {
     @CompilerDirectives.TruffleBoundary
     static Thread getLongThread(ConcurrentMap<Long, Thread> c, long key) {
         return c.get(key);
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    public static void removeIntObj(ConcurrentMap<Integer, Object> c, LLVMPointer key) {
+        c.remove(key);
     }
 
     @CompilerDirectives.TruffleBoundary

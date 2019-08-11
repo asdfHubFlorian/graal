@@ -11,23 +11,27 @@ import com.oracle.truffle.llvm.runtime.LLVMExitException;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 import com.oracle.truffle.llvm.runtime.memory.LLVMStack;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
+import com.oracle.truffle.llvm.runtime.pointer.LLVMNativePointer;
+import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 
 public class UtilStartThread {
     static class InitStartOfNewThread implements Runnable {
+        private boolean isThread;
         private Object startRoutine;
         private Object arg;
         private TruffleLanguage.ContextReference<LLVMContext> ctxRef;
         private boolean exit;
         private LLVMExitException exitException;
 
-        public InitStartOfNewThread(Object startRoutine, Object arg, TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
+        public InitStartOfNewThread(Object startRoutine, Object arg, TruffleLanguage.ContextReference<LLVMContext> ctxRef, boolean isThread) {
             this.startRoutine = startRoutine;
             this.arg = arg;
             this.ctxRef = ctxRef;
             this.exit = false;
+            this.isThread = isThread;
         }
 
         @Override
@@ -43,16 +47,37 @@ public class UtilStartThread {
                 Object retVal = ctxRef.get().pthreadCallTarget.call(startRoutine, arg);
                 // no null values in concurrent hash map allowed
                 if (retVal == null) {
-                    retVal = 0;
+                    retVal = LLVMNativePointer.createNull();
                 }
-                ctxRef.get().retValStorage.put(Thread.currentThread().getId(), retVal);
+                UtilAccess.putLongObj(ctxRef.get().retValStorage, Thread.currentThread().getId(), retVal);
             } catch (PThreadExitException e) {
-
+                // return value is written to retval storage in exit function before it throws this exception
             } catch (LLVMExitException e) {
                 exit = true;
                 exitException = e;
                 // ctxRef.get().shutdownThreads();
                 System.exit(e.getReturnCode());
+            } finally {
+                // call destructors from key create
+                if (this.isThread) {
+                    for (int key = 1; key <= ctxRef.get().curKeyVal; key++) {
+                        LLVMPointer destructor;
+                        if ((destructor = ctxRef.get().destructorStorage.get(key)) != null) {
+                            Object keyVal = ctxRef.get().keyStorage.get(key).get(Thread.currentThread().getId());
+                            if (keyVal != null) {
+                                try {
+                                    LLVMPointer keyValPointer = LLVMPointer.cast(keyVal);
+                                    if (keyValPointer.isNull()) {
+                                        continue;
+                                    }
+                                } catch (Exception e) {
+                                }
+                                ctxRef.get().keyStorage.get(key).remove(Thread.currentThread());
+                                new InitStartOfNewThread(destructor, keyVal, this.ctxRef, false).run();
+                            }
+                        }
+                    }
+                }
             }
         }
 
