@@ -96,7 +96,7 @@ public final class LLVMContext {
     public final ConcurrentMap<LLVMPointer, Object> rwlockStorage;
     public final ConcurrentMap<Long, Object> retValStorage;
     public final ConcurrentMap<Long, Thread> threadStorage;
-    public final ConcurrentMap<LLVMPointer, Object> onceStorage;
+    public final List<LLVMPointer> onceStorage;
     public final ConcurrentMap<Integer, ConcurrentMap<Long, LLVMPointer>> keyStorage;
     public CallTarget pthreadCallTarget = null;
     public int curKeyVal;
@@ -232,7 +232,7 @@ public final class LLVMContext {
         this.rwlockStorage = new ConcurrentHashMap<>();
         this.retValStorage = new ConcurrentHashMap<>();
         this.threadStorage = new ConcurrentHashMap<>();
-        this.onceStorage = new ConcurrentHashMap<>();
+        this.onceStorage = new ArrayList<>();
         this.keyStorage = new ConcurrentHashMap<>();
         this.curKeyVal = 1;
     }

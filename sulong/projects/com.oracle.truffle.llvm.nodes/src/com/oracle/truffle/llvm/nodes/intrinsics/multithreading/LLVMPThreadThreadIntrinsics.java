@@ -82,14 +82,12 @@ public class LLVMPThreadThreadIntrinsics {
                 // join thread
                 Thread thread = UtilAccess.getLongThread(ctxRef.get().threadStorage, th);
                 if (thread == null) {
-                    // TODO: error code handling
-                    return 5;
+                    return 0;
                 }
                 thread.join();
                 // get return value
                 Object retVal = UtilAccess.getLongObj(ctxRef.get().retValStorage, th);
                 // store return value at ptr
-                // TODO: test if storing null is possible
                 if (!threadReturn.isNull()) {
                     storeNode.executeWithTarget(threadReturn, retVal);
                 }
@@ -107,10 +105,10 @@ public class LLVMPThreadThreadIntrinsics {
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, LLVMPointer onceControl, LLVMPointer initRoutine, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
             synchronized (ctxRef.get()) {
-                if (ctxRef.get().onceStorage.containsKey(onceControl)) {
+                if (ctxRef.get().onceStorage.contains(onceControl)) {
                     return 0;
                 }
-                ctxRef.get().onceStorage.put(onceControl, new Object());
+                ctxRef.get().onceStorage.add(onceControl);
             }
             UtilStartThread.InitStartOfNewThread init = new UtilStartThread.InitStartOfNewThread(initRoutine, null, ctxRef);
             init.run();
