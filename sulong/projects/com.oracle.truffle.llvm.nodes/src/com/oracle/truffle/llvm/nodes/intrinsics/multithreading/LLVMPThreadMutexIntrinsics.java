@@ -19,6 +19,7 @@ import org.graalvm.nativeimage.c.constant.CConstant;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class LLVMPThreadMutexIntrinsics {
@@ -31,11 +32,11 @@ public class LLVMPThreadMutexIntrinsics {
 
         protected ReentrantLock internLock;
         private final MutexType type;
-        private final List<Thread> waitingThreads;
+        private final ConcurrentLinkedQueue<Thread> waitingThreads;
 
         public Mutex(MutexType type) {
             this.internLock = new ReentrantLock();
-            this.waitingThreads = new ArrayList();
+            this.waitingThreads = new ConcurrentLinkedQueue<>();
             if (type != null) {
                 this.type = type;
             } else {
@@ -51,14 +52,14 @@ public class LLVMPThreadMutexIntrinsics {
         public boolean lock() {
             if (this.internLock.isHeldByCurrentThread()) {
                 if (this.type == MutexType.DEFAULT_NORMAL) {
-                    // deadlock according to spec
-                    // does this make sense?
-                    // TODO: user warning?
+                    // deadlock until another thread unlocks it
+                    // is not defined in spec, but the native behavior
                     while (true) {
                         try {
+                            waitingThreads.add(Thread.currentThread());
                             Thread.sleep(Long.MAX_VALUE);
                         } catch (InterruptedException e) {
-                            // should be possible to interrupt and stop the thread anyway
+                            waitingThreads.remove(Thread.currentThread());
                             break;
                         }
                     }
