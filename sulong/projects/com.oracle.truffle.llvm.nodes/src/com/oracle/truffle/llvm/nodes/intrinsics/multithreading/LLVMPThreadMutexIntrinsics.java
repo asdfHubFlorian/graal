@@ -14,8 +14,11 @@ import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMLoadNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMStoreNode;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
+import com.sun.xml.internal.bind.v2.runtime.SwaRefAdapter;
 import org.graalvm.nativeimage.c.constant.CConstant;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class LLVMPThreadMutexIntrinsics {
@@ -26,11 +29,13 @@ public class LLVMPThreadMutexIntrinsics {
             RECURSIVE
         }
 
-        protected final ReentrantLock internLock;
+        protected ReentrantLock internLock;
         private final MutexType type;
+        private final List<Thread> waitingThreads;
 
         public Mutex(MutexType type) {
             this.internLock = new ReentrantLock();
+            this.waitingThreads = new ArrayList();
             if (type != null) {
                 this.type = type;
             } else {
@@ -62,6 +67,28 @@ public class LLVMPThreadMutexIntrinsics {
                     return false;
                 }
             }
+            // default_normal mutexes should be able to be unlocked by another thread
+            // javas reentrant lock class does not allow this though (illegal monitor state exception)
+            // so when unlock from not owning thread comes to a default_normal mutex
+            // the intern lock gets replaced by a new unlocked one, and the waiting threads get interrupted
+            // so they will call "lock" on the new intern lock
+
+            // this is not in the spec, but in the native implementation
+            // and this behavior is needed for running the benchmark "threadring" form the shootout suite
+            if (this.type == MutexType.DEFAULT_NORMAL) {
+                while (true) {
+                    try {
+                        if (!waitingThreads.contains(Thread.currentThread())) {
+                            waitingThreads.add(Thread.currentThread());
+                        }
+                        internLock.lockInterruptibly();
+                    } catch (InterruptedException e) {
+                        continue;
+                    }
+                    waitingThreads.remove(Thread.currentThread());
+                    return true;
+                }
+            }
             internLock.lock();
             return true;
         }
@@ -72,8 +99,12 @@ public class LLVMPThreadMutexIntrinsics {
 
         public boolean unlock() {
             if (!internLock.isHeldByCurrentThread()) {
-                // in spec undefined, my native implementation on ubuntu just returns 0 for unlocking not-locked / not-owned default/normal mutexes
+                // in spec undefined, my native implementation unlocks and returns 0 when unlocking not-locked / not-owned default_normal mutexes
                 if (this.type == MutexType.DEFAULT_NORMAL) {
+                    internLock = new ReentrantLock();
+                    for (Thread t : this.waitingThreads) {
+                        t.interrupt();
+                    }
                     return true;
                 }
                 return false;
