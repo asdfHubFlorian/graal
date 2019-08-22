@@ -121,7 +121,7 @@ public class LLVMPThreadThreadIntrinsics {
     public abstract static class LLVMPThreadEqual extends LLVMBuiltin {
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, long t1, long t2) {
-            return t1 == t2 ? 0 : 1;
+            return t1 == t2 ? 1 : 0;
         }
     }
 
