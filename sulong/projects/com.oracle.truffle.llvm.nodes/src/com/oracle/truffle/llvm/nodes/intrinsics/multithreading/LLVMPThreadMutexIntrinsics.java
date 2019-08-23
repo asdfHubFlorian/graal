@@ -174,8 +174,8 @@ public class LLVMPThreadMutexIntrinsics {
                 store = ctxRef.get().getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I32);
             }
             // check if valid type
-            if (type != CConstants.getPTHREADMUTEXDEFAULT() && type != CConstants.getPTHREADMUTEXERRORCHECK() && type != CConstants.getPTHREADMUTEXNORMAL() && type != CConstants.getPTHREADMUTEXRECURSIVE()) {
-                return CConstants.getEINVAL();
+            if (type != ctxRef.get().pthreadConstants.getPTHREADMUTEXDEFAULT() && type != ctxRef.get().pthreadConstants.getPTHREADMUTEXERRORCHECK() && type != ctxRef.get().pthreadConstants.getPTHREADMUTEXNORMAL() && type != ctxRef.get().pthreadConstants.getPTHREADMUTEXRECURSIVE()) {
+                return ctxRef.get().pthreadConstants.getEINVAL();
             }
             // store type in attr variable
             store.executeWithTarget(attr, type);
@@ -212,9 +212,9 @@ public class LLVMPThreadMutexIntrinsics {
                 attrValue = (int) read.executeWithTarget(attr);
             }
             Mutex.MutexType mutexType = Mutex.MutexType.DEFAULT_NORMAL;
-            if (attrValue == CConstants.getPTHREADMUTEXERRORCHECK()) {
+            if (attrValue == ctxRef.get().pthreadConstants.getPTHREADMUTEXERRORCHECK()) {
                 mutexType = Mutex.MutexType.ERRORCHECK;
-            } else if (attrValue == CConstants.getPTHREADMUTEXRECURSIVE()) {
+            } else if (attrValue == ctxRef.get().pthreadConstants.getPTHREADMUTEXRECURSIVE()) {
                 mutexType = Mutex.MutexType.RECURSIVE;
             }
             UtilAccess.putLLVMPointerObj(ctxRef.get().mutexStorage, mutex, new Mutex(mutexType));
@@ -236,7 +236,7 @@ public class LLVMPThreadMutexIntrinsics {
                 UtilAccess.putLLVMPointerObj(ctxRef.get().mutexStorage, mutex, mutexObj);
             }
             // lock only returns false when mutex is errorcheck type and current thread already holds it
-            return mutexObj.lock() ? 0 : CConstants.getEDEADLK();
+            return mutexObj.lock() ? 0 : ctxRef.get().pthreadConstants.getEDEADLK();
         }
     }
 
@@ -253,7 +253,7 @@ public class LLVMPThreadMutexIntrinsics {
                 mutexObj = new Mutex(Mutex.MutexType.DEFAULT_NORMAL);
                 UtilAccess.putLLVMPointerObj(ctxRef.get().mutexStorage, mutex, mutexObj);
             }
-            return mutexObj.tryLock() ? 0 : CConstants.getEBUSY();
+            return mutexObj.tryLock() ? 0 : ctxRef.get().pthreadConstants.getEBUSY();
         }
     }
 
@@ -266,7 +266,7 @@ public class LLVMPThreadMutexIntrinsics {
             if (mutexObj == null) {
                 return 0;
             }
-            return mutexObj.unlock() ? 0 : CConstants.getEPERM();
+            return mutexObj.unlock() ? 0 : ctxRef.get().pthreadConstants.getEPERM();
         }
     }
 }

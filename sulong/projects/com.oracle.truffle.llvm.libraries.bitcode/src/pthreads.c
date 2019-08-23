@@ -64,12 +64,6 @@ int __sulong_getPTHREAD_MUTEX_NORMAL() {
 int __sulong_getPTHREAD_MUTEX_RECURSIVE() {
 	return PTHREAD_MUTEX_RECURSIVE;
 }
-long __sulong_getNanoSeconds(struct timespec *time) {
-	return time->tv_nsec;
-}
-long __sulong_getSeconds(struct timespec *time) {
-	return time->tv_sec;
-}
 
 //int pthread_attr_destroy(pthread_attr_t *attr) {
 //  ERR_UNSUPPORTED(pthread_attr_destroy);

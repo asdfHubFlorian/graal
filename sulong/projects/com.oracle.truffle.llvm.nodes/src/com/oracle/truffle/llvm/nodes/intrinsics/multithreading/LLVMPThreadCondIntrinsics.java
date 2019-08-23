@@ -151,7 +151,11 @@ public class LLVMPThreadCondIntrinsics {
                 condObj = new Cond();
                 UtilAccess.putLLVMPointerObj(ctxRef.get().condStorage, cond, condObj);
             }
-            return condObj.cWait(mutexObj) ? 0 : CConstants.getEPERM();
+            if (mutexObj == null) {
+                mutexObj = new LLVMPThreadMutexIntrinsics.Mutex(LLVMPThreadMutexIntrinsics.Mutex.MutexType.DEFAULT_NORMAL);
+                UtilAccess.putLLVMPointerObj(ctxRef.get().mutexStorage, mutex, mutexObj);
+            }
+            return condObj.cWait(mutexObj) ? 0 : ctxRef.get().pthreadConstants.getEPERM();
         }
     }
 }

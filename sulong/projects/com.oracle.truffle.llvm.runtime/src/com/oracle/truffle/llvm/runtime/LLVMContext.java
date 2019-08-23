@@ -42,10 +42,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.oracle.truffle.llvm.runtime.util.PThreadCConstants;
 import org.graalvm.collections.EconomicMap;
 
 import com.oracle.truffle.api.CallTarget;
@@ -90,18 +90,20 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 
 public final class LLVMContext {
-    // my code start
     public final ConcurrentMap<LLVMPointer, Object> condStorage;
     public final ConcurrentMap<LLVMPointer, Object> mutexStorage;
     public final ConcurrentMap<LLVMPointer, Object> rwlockStorage;
+
+    // the long-key is the thread-id
     public final ConcurrentMap<Long, Object> retValStorage;
     public final ConcurrentMap<Long, Thread> threadStorage;
+
     public final List<LLVMPointer> onceStorage;
     public final ConcurrentMap<Integer, ConcurrentMap<Long, LLVMPointer>> keyStorage;
     public final ConcurrentMap<Integer, LLVMPointer> destructorStorage;
+    public final PThreadCConstants pthreadConstants;
     public CallTarget pthreadCallTarget = null;
     public int curKeyVal;
-    // my code end
 
     private final List<Path> libraryPaths = new ArrayList<>();
     @CompilationFinal private Path internalLibraryPath;
@@ -237,6 +239,7 @@ public final class LLVMContext {
         this.keyStorage = new ConcurrentHashMap<>();
         this.destructorStorage = new ConcurrentHashMap<>();
         this.curKeyVal = 0;
+        this.pthreadConstants = new PThreadCConstants(this);
     }
 
     private static final class InitializeContextNode extends LLVMStatementNode {

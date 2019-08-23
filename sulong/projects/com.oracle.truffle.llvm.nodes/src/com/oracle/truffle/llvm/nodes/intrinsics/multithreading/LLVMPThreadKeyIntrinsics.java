@@ -93,7 +93,7 @@ public class LLVMPThreadKeyIntrinsics {
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, int key, LLVMPointer value, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
             if (!ctxRef.get().keyStorage.containsKey(key)) {
-                return CConstants.getEINVAL();
+                return ctxRef.get().pthreadConstants.getEINVAL();
             }
             ctxRef.get().keyStorage.get(key).put(Thread.currentThread().getId(), value);
             return 0;

@@ -130,7 +130,7 @@ public class LLVMPThreadRWLockIntrinsics {
                 rwlockObj = new RWLock();
                 UtilAccess.putLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock, rwlockObj);
             }
-            return rwlockObj.tryReadLock() ? 0 : CConstants.getEBUSY();
+            return rwlockObj.tryReadLock() ? 0 : ctxRef.get().pthreadConstants.getEBUSY();
         }
     }
 
@@ -164,7 +164,7 @@ public class LLVMPThreadRWLockIntrinsics {
                 rwlockObj = new RWLock();
                 UtilAccess.putLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock, rwlockObj);
             }
-            return rwlockObj.tryWriteLock() ? 0 : CConstants.getEBUSY();
+            return rwlockObj.tryWriteLock() ? 0 : ctxRef.get().pthreadConstants.getEBUSY();
         }
     }
 

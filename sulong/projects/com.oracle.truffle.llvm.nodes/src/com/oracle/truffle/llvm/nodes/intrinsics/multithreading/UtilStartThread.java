@@ -145,28 +145,31 @@ public class UtilStartThread {
         @CompilerDirectives.CompilationFinal
         FrameSlot spSlot = null;
 
-        private LLVMLanguage language;
+        // private LLVMLanguage language;
+        private final LLVMContext ctx;
 
         protected RunNewThreadNode(LLVMLanguage language) {
             super(language);
-            this.language = language;
+            // this.language = language;
+            this.ctx = language.getContextReference().get();
         }
 
         @Override
         public Object execute(VirtualFrame frame) {
-            LLVMStack.StackPointer sp = language.getContextReference().get().getThreadingStack().getStack().newFrame();
+            // LLVMStack.StackPointer sp = language.getContextReference().get().getThreadingStack().getStack().newFrame();
+            LLVMStack.StackPointer sp = ctx.getThreadingStack().getStack().newFrame();
             if (callNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 functionSlot = frame.getFrameDescriptor().findOrAddFrameSlot("function");
                 argSlot = frame.getFrameDescriptor().findOrAddFrameSlot("arg");
                 spSlot = frame.getFrameDescriptor().findOrAddFrameSlot("sp");
 
-                callNode = getCurrentContext(LLVMLanguage.class).getNodeFactory().createFunctionCall(
+                callNode = ctx.getNodeFactory().createFunctionCall(
                         new MyArgNode(functionSlot),
                         new LLVMExpressionNode[] {
                                 new MyArgNode(spSlot), new MyArgNode(argSlot)
                         },
-                        new FunctionType(PointerType.VOID, new Type[] {}, false),
+                        new FunctionType(PointerType.VOID, new Type[] {PointerType.VOID}, false),
                         null
                 );
             }
