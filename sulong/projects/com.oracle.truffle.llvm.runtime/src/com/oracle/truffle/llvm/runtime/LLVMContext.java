@@ -236,7 +236,7 @@ public final class LLVMContext {
         this.onceStorage = new ArrayList<>();
         this.keyStorage = new ConcurrentHashMap<>();
         this.destructorStorage = new ConcurrentHashMap<>();
-        this.curKeyVal = 1;
+        this.curKeyVal = 0;
     }
 
     private static final class InitializeContextNode extends LLVMStatementNode {

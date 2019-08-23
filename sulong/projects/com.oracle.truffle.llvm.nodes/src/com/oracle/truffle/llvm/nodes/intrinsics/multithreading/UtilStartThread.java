@@ -1,3 +1,32 @@
+/*
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates.
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this list of
+ * conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of
+ * conditions and the following disclaimer in the documentation and/or other materials provided
+ * with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be used to
+ * endorse or promote products derived from this software without specific prior written
+ * permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.oracle.truffle.llvm.nodes.intrinsics.multithreading;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -26,7 +55,7 @@ public class UtilStartThread {
         private boolean exit;
         private LLVMExitException exitException;
 
-        public InitStartOfNewThread(Object startRoutine, Object arg, TruffleLanguage.ContextReference<LLVMContext> ctxRef, boolean isThread) {
+        InitStartOfNewThread(Object startRoutine, Object arg, TruffleLanguage.ContextReference<LLVMContext> ctxRef, boolean isThread) {
             this.startRoutine = startRoutine;
             this.arg = arg;
             this.ctxRef = ctxRef;
@@ -36,7 +65,7 @@ public class UtilStartThread {
 
         @Override
         public void run() {
-            // synchronized because i once got a null pointer exception from "Object retVal = ctxRef.get().pthreadCallTarget.call(startRoutine, arg);"
+            // synchronized because once there was a null pointer exception from "Object retVal = ctxRef.get().pthreadCallTarget.call(startRoutine, arg);"
             synchronized (ctxRef.get()) {
                 if (ctxRef.get().pthreadCallTarget == null) {
                     ctxRef.get().pthreadCallTarget = Truffle.getRuntime().createCallTarget(new RunNewThreadNode(LLVMLanguage.getLanguage()));
@@ -61,8 +90,8 @@ public class UtilStartThread {
                 // call destructors from key create
                 if (this.isThread) {
                     for (int key = 1; key <= ctxRef.get().curKeyVal; key++) {
-                        LLVMPointer destructor;
-                        if ((destructor = ctxRef.get().destructorStorage.get(key)) != null) {
+                        LLVMPointer destructor = ctxRef.get().destructorStorage.get(key);
+                        if (destructor != null) {
                             Object keyVal = ctxRef.get().keyStorage.get(key).get(Thread.currentThread().getId());
                             if (keyVal != null) {
                                 try {

@@ -1,29 +1,47 @@
+/*
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates.
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this list of
+ * conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of
+ * conditions and the following disclaimer in the documentation and/or other materials provided
+ * with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be used to
+ * endorse or promote products derived from this software without specific prior written
+ * permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.oracle.truffle.llvm.nodes.intrinsics.multithreading;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.ControlFlowException;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.llvm.nodes.intrinsics.llvm.LLVMBuiltin;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 import com.oracle.truffle.llvm.runtime.interop.access.LLVMInteropType;
-import com.oracle.truffle.llvm.runtime.memory.LLVMStack;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMStoreNode;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
-import com.oracle.truffle.llvm.runtime.types.FunctionType;
-import com.oracle.truffle.llvm.runtime.types.PointerType;
-import com.oracle.truffle.llvm.runtime.types.Type;
-
-import javax.rmi.CORBA.Util;
 
 public class LLVMPThreadThreadIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "thread")
@@ -34,7 +52,7 @@ public class LLVMPThreadThreadIntrinsics {
         @Child
         LLVMStoreNode store = null;
 
-        // no relevant error code handling here
+        // no relevant error codes here
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, LLVMPointer thread, LLVMPointer attr, LLVMPointer startRoutine, LLVMPointer arg, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
             // create store node
@@ -45,7 +63,7 @@ public class LLVMPThreadThreadIntrinsics {
             // create thread for execution of function
             UtilStartThread.InitStartOfNewThread init = new UtilStartThread.InitStartOfNewThread(startRoutine, arg, ctxRef, true);
             Thread t = ctxRef.get().getEnv().createThread(init);
-            // store cur id in thread var
+            // store current id in thread variable
             store.executeWithTarget(thread, t.getId());
             // store thread with thread id in context
             UtilAccess.putLongThread(ctxRef.get().threadStorage, t.getId(), t);
@@ -72,6 +90,7 @@ public class LLVMPThreadThreadIntrinsics {
     public abstract static class LLVMPThreadJoin extends LLVMBuiltin {
         @Child LLVMStoreNode storeNode;
 
+        // no error codes here
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, long th, LLVMPointer threadReturn, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
             if (storeNode == null) {
@@ -87,11 +106,11 @@ public class LLVMPThreadThreadIntrinsics {
                 thread.join();
                 // get return value
                 Object retVal = UtilAccess.getLongObj(ctxRef.get().retValStorage, th);
-                // store return value at ptr
+                // store return value at "threadReturn" pointer
                 if (!threadReturn.isNull()) {
                     storeNode.executeWithTarget(threadReturn, retVal);
                 }
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             return 0;
@@ -119,6 +138,7 @@ public class LLVMPThreadThreadIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "t1")
     @NodeChild(type = LLVMExpressionNode.class, value = "t2")
     public abstract static class LLVMPThreadEqual extends LLVMBuiltin {
+        // no error codes here
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, long t1, long t2) {
             return t1 == t2 ? 1 : 0;
@@ -126,12 +146,16 @@ public class LLVMPThreadThreadIntrinsics {
     }
 
     public abstract static class LLVMPThreadSelf extends LLVMBuiltin {
+        // no error codes here
         @Specialization
         protected long doIntrinsic(VirtualFrame frame) {
             return Thread.currentThread().getId();
         }
     }
 
+    // just dummy function that does nothing, my implementation does not support attributes
+    // but was needed for the execution of "pigz"
+    // which was using an attribute to make the threads joinable, what they already are by default here
     @NodeChild(type = LLVMExpressionNode.class, value = "attr")
     public abstract static class LLVMPThreadAttrDestroy extends LLVMBuiltin {
         @Specialization
@@ -140,6 +164,7 @@ public class LLVMPThreadThreadIntrinsics {
         }
     }
 
+    // also just dummy function
     @NodeChild(type = LLVMExpressionNode.class, value = "attr")
     public abstract static class LLVMPThreadAttrInit extends LLVMBuiltin {
         @Specialization
@@ -148,6 +173,7 @@ public class LLVMPThreadThreadIntrinsics {
         }
     }
 
+    // also just dummy function
     @NodeChild(type = LLVMExpressionNode.class, value = "attr")
     @NodeChild(type = LLVMExpressionNode.class, value = "detachstate")
     public abstract static class LLVMPThreadAttrSetdetachstate extends LLVMBuiltin {
