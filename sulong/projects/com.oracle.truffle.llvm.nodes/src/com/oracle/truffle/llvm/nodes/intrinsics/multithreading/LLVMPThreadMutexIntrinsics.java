@@ -43,6 +43,8 @@ import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMLoadNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMStoreNode;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
+import com.oracle.truffle.llvm.runtime.util.PThreadCConstants;
+
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -72,6 +74,7 @@ public class LLVMPThreadMutexIntrinsics {
             return this.type;
         }
 
+        // TODO: boundary to all collection stuff
         public boolean lock() {
             if (this.internLock.isHeldByCurrentThread()) {
                 if (this.type == MutexType.DEFAULT_NORMAL) {
@@ -79,9 +82,10 @@ public class LLVMPThreadMutexIntrinsics {
                     // is not defined in spec, but the native behavior
                     while (true) {
                         try {
-                            waitingThreads.add(Thread.currentThread());
+                            if (!waitingThreads.contains(Thread.currentThread())) {
+                                waitingThreads.add(Thread.currentThread());
+                            }
                             Thread.sleep(Long.MAX_VALUE);
-                            waitingThreads.remove(Thread.currentThread());
                         } catch (InterruptedException e) {
                             waitingThreads.remove(Thread.currentThread());
                             break;
@@ -165,17 +169,17 @@ public class LLVMPThreadMutexIntrinsics {
 
         // [EINVAL] when no valid type
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer attr, int type, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer attr, int type, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
             // pthread_mutexattr_t is just an int
             // so we just write the int-value type to the address attr points to
             // create store node
             if (store == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                store = ctxRef.get().getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I32);
+                store = ctx.getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I32);
             }
             // check if valid type
-            if (type != ctxRef.get().pthreadConstants.getPTHREADMUTEXDEFAULT() && type != ctxRef.get().pthreadConstants.getPTHREADMUTEXERRORCHECK() && type != ctxRef.get().pthreadConstants.getPTHREADMUTEXNORMAL() && type != ctxRef.get().pthreadConstants.getPTHREADMUTEXRECURSIVE()) {
-                return ctxRef.get().pthreadConstants.getEINVAL();
+            if (type != ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.PTHREAD_MUTEX_DEFAULT) && type != ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.PTHREAD_MUTEX_ERRORCHECK) && type != ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.PTHREAD_MUTEX_NORMAL) && type != ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.PTHREAD_MUTEX_RECURSIVE)) {
+                return ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.EINVAL);
             }
             // store type in attr variable
             store.executeWithTarget(attr, type);
@@ -186,8 +190,8 @@ public class LLVMPThreadMutexIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "mutex")
     public abstract static class LLVMPThreadMutexDestroy extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            UtilAccess.removeLLVMPointerObj(ctxRef.get().mutexStorage, mutex);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            UtilAccess.remove(ctx.mutexStorage, mutex);
             return 0;
         }
     }
@@ -199,10 +203,10 @@ public class LLVMPThreadMutexIntrinsics {
         LLVMLoadNode read = null;
 
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, LLVMPointer attr, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, LLVMPointer attr, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
             if (read == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                read = ctxRef.get().getNodeFactory().createLoadNode(LLVMInteropType.ValueKind.I32);
+                read = ctx.getNodeFactory().createLoadNode(LLVMInteropType.ValueKind.I32);
             }
             // we can use the address of the pointer here, bc a mutex
             // must only work when using the original variable, not a copy
@@ -212,12 +216,12 @@ public class LLVMPThreadMutexIntrinsics {
                 attrValue = (int) read.executeWithTarget(attr);
             }
             Mutex.MutexType mutexType = Mutex.MutexType.DEFAULT_NORMAL;
-            if (attrValue == ctxRef.get().pthreadConstants.getPTHREADMUTEXERRORCHECK()) {
+            if (attrValue == ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.PTHREAD_MUTEX_ERRORCHECK)) {
                 mutexType = Mutex.MutexType.ERRORCHECK;
-            } else if (attrValue == ctxRef.get().pthreadConstants.getPTHREADMUTEXRECURSIVE()) {
+            } else if (attrValue == ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.PTHREAD_MUTEX_RECURSIVE)) {
                 mutexType = Mutex.MutexType.RECURSIVE;
             }
-            UtilAccess.putLLVMPointerObj(ctxRef.get().mutexStorage, mutex, new Mutex(mutexType));
+            UtilAccess.put(ctx.mutexStorage, mutex, new Mutex(mutexType));
             return 0;
         }
     }
@@ -226,17 +230,17 @@ public class LLVMPThreadMutexIntrinsics {
     public abstract static class LLVMPThreadMutexLock extends LLVMBuiltin {
         // [EDEADLK] if errorcheck mutex and already owned
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            Mutex mutexObj = (Mutex) UtilAccess.getLLVMPointerObj(ctxRef.get().mutexStorage, mutex);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            Mutex mutexObj = (Mutex) UtilAccess.get(ctx.mutexStorage, mutex);
             if (mutexObj == null) {
                 // mutex is not initialized
                 // but it works anyway on most implementations
                 // so we will make it work here too, just using default type
                 mutexObj = new Mutex(Mutex.MutexType.DEFAULT_NORMAL);
-                UtilAccess.putLLVMPointerObj(ctxRef.get().mutexStorage, mutex, mutexObj);
+                UtilAccess.put(ctx.mutexStorage, mutex, mutexObj);
             }
             // lock only returns false when mutex is errorcheck type and current thread already holds it
-            return mutexObj.lock() ? 0 : ctxRef.get().pthreadConstants.getEDEADLK();
+            return mutexObj.lock() ? 0 : ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.EDEADLK);
         }
     }
 
@@ -244,16 +248,16 @@ public class LLVMPThreadMutexIntrinsics {
     public abstract static class LLVMPThreadMutexTrylock extends LLVMBuiltin {
         // [EBUSY] when already locked
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            Mutex mutexObj = (Mutex) UtilAccess.getLLVMPointerObj(ctxRef.get().mutexStorage, mutex);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            Mutex mutexObj = (Mutex) UtilAccess.get(ctx.mutexStorage, mutex);
             if (mutexObj == null) {
                 // mutex is not initialized
                 // but it works anyway on most implementations
                 // so we will make it work here too, just using default type
                 mutexObj = new Mutex(Mutex.MutexType.DEFAULT_NORMAL);
-                UtilAccess.putLLVMPointerObj(ctxRef.get().mutexStorage, mutex, mutexObj);
+                UtilAccess.put(ctx.mutexStorage, mutex, mutexObj);
             }
-            return mutexObj.tryLock() ? 0 : ctxRef.get().pthreadConstants.getEBUSY();
+            return mutexObj.tryLock() ? 0 : ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.EBUSY);
         }
     }
 
@@ -261,12 +265,12 @@ public class LLVMPThreadMutexIntrinsics {
     public abstract static class LLVMPThreadMutexUnlock extends LLVMBuiltin {
         // [EPERM] when errorcheck or recursive mutex and not owned by calling thread
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            Mutex mutexObj = (Mutex) UtilAccess.getLLVMPointerObj(ctxRef.get().mutexStorage, mutex);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            Mutex mutexObj = (Mutex) UtilAccess.get(ctx.mutexStorage, mutex);
             if (mutexObj == null) {
                 return 0;
             }
-            return mutexObj.unlock() ? 0 : ctxRef.get().pthreadConstants.getEPERM();
+            return mutexObj.unlock() ? 0 : ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.EPERM);
         }
     }
 }

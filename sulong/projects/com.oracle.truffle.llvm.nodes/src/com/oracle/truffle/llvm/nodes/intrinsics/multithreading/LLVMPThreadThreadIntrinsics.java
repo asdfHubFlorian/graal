@@ -54,19 +54,19 @@ public class LLVMPThreadThreadIntrinsics {
 
         // no relevant error codes here
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer thread, LLVMPointer attr, LLVMPointer startRoutine, LLVMPointer arg, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer thread, LLVMPointer attr, LLVMPointer startRoutine, LLVMPointer arg, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
             // create store node
             if (store == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                store = ctxRef.get().getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I64);
+                store = ctx.getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I64);
             }
             // create thread for execution of function
-            UtilStartThread.InitStartOfNewThread init = new UtilStartThread.InitStartOfNewThread(startRoutine, arg, ctxRef, true);
-            Thread t = ctxRef.get().getEnv().createThread(init);
+            UtilStartThread.InitStartOfNewThread init = new UtilStartThread.InitStartOfNewThread(startRoutine, arg, ctx, true);
+            Thread t = ctx.getEnv().createThread(init);
             // store current id in thread variable
             store.executeWithTarget(thread, t.getId());
             // store thread with thread id in context
-            UtilAccess.putLongThread(ctxRef.get().threadStorage, t.getId(), t);
+            UtilAccess.put(ctx.threadStorage, t.getId(), t);
             // start thread
             t.start();
             return 0;
@@ -77,9 +77,9 @@ public class LLVMPThreadThreadIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "retval")
     public abstract static class LLVMPThreadExit extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, Object retval, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
+        protected int doIntrinsic(VirtualFrame frame, Object retval, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
             // save return value in context for join calls
-            UtilAccess.putLongObj(ctxRef.get().retValStorage, Thread.currentThread().getId(), retval);
+            UtilAccess.put(ctx.retValStorage, Thread.currentThread().getId(), retval);
             // stop this thread
             throw new PThreadExitException();
         }
@@ -92,20 +92,20 @@ public class LLVMPThreadThreadIntrinsics {
 
         // no error codes here
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, long th, LLVMPointer threadReturn, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
+        protected int doIntrinsic(VirtualFrame frame, long th, LLVMPointer threadReturn, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
             if (storeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                storeNode = ctxRef.get().getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.POINTER);
+                storeNode = ctx.getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.POINTER);
             }
             try {
                 // join thread
-                Thread thread = UtilAccess.getLongThread(ctxRef.get().threadStorage, th);
+                Thread thread = UtilAccess.get(ctx.threadStorage, th);
                 if (thread == null) {
                     return 0;
                 }
                 thread.join();
                 // get return value
-                Object retVal = UtilAccess.getLongObj(ctxRef.get().retValStorage, th);
+                Object retVal = UtilAccess.get(ctx.retValStorage, th);
                 // store return value at "threadReturn" pointer
                 if (!threadReturn.isNull()) {
                     storeNode.executeWithTarget(threadReturn, retVal);
@@ -122,14 +122,14 @@ public class LLVMPThreadThreadIntrinsics {
     public abstract static class LLVMPThreadOnce extends LLVMBuiltin {
         // no relevant error code handling here
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer onceControl, LLVMPointer initRoutine, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            synchronized (ctxRef.get()) {
-                if (ctxRef.get().onceStorage.contains(onceControl)) {
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer onceControl, LLVMPointer initRoutine, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            synchronized (ctx) {
+                if (ctx.onceStorage.contains(onceControl)) {
                     return 0;
                 }
-                ctxRef.get().onceStorage.add(onceControl);
+                ctx.onceStorage.add(onceControl);
             }
-            UtilStartThread.InitStartOfNewThread init = new UtilStartThread.InitStartOfNewThread(initRoutine, null, ctxRef, false);
+            UtilStartThread.InitStartOfNewThread init = new UtilStartThread.InitStartOfNewThread(initRoutine, null, ctx, false);
             init.run();
             return 0;
         }

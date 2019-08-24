@@ -51,14 +51,14 @@ public class UtilStartThread {
         private boolean isThread;
         private Object startRoutine;
         private Object arg;
-        private TruffleLanguage.ContextReference<LLVMContext> ctxRef;
+        private LLVMContext ctx;
         private boolean exit;
         private LLVMExitException exitException;
 
-        InitStartOfNewThread(Object startRoutine, Object arg, TruffleLanguage.ContextReference<LLVMContext> ctxRef, boolean isThread) {
+        InitStartOfNewThread(Object startRoutine, Object arg, LLVMContext ctx, boolean isThread) {
             this.startRoutine = startRoutine;
             this.arg = arg;
-            this.ctxRef = ctxRef;
+            this.ctx = ctx;
             this.exit = false;
             this.isThread = isThread;
         }
@@ -66,19 +66,19 @@ public class UtilStartThread {
         @Override
         public void run() {
             // synchronized because once there was a null pointer exception from "Object retVal = ctxRef.get().pthreadCallTarget.call(startRoutine, arg);"
-            synchronized (ctxRef.get()) {
-                if (ctxRef.get().pthreadCallTarget == null) {
-                    ctxRef.get().pthreadCallTarget = Truffle.getRuntime().createCallTarget(new RunNewThreadNode(LLVMLanguage.getLanguage()));
+            synchronized (ctx) {
+                if (ctx.pthreadCallTarget == null) {
+                    ctx.pthreadCallTarget = Truffle.getRuntime().createCallTarget(new RunNewThreadNode(LLVMLanguage.getLanguage()));
                 }
             }
             // pthread_exit throws a control flow exception to stop the thread
             try {
-                Object retVal = ctxRef.get().pthreadCallTarget.call(startRoutine, arg);
+                Object retVal = ctx.pthreadCallTarget.call(startRoutine, arg);
                 // no null values in concurrent hash map allowed
                 if (retVal == null) {
                     retVal = LLVMNativePointer.createNull();
                 }
-                UtilAccess.putLongObj(ctxRef.get().retValStorage, Thread.currentThread().getId(), retVal);
+                UtilAccess.put(ctx.retValStorage, Thread.currentThread().getId(), retVal);
             } catch (PThreadExitException e) {
                 // return value is written to retval storage in exit function before it throws this exception
             } catch (LLVMExitException e) {
@@ -89,10 +89,10 @@ public class UtilStartThread {
             } finally {
                 // call destructors from key create
                 if (this.isThread) {
-                    for (int key = 1; key <= ctxRef.get().curKeyVal; key++) {
-                        LLVMPointer destructor = ctxRef.get().destructorStorage.get(key);
+                    for (int key = 1; key <= ctx.curKeyVal; key++) {
+                        LLVMPointer destructor = UtilAccess.get(ctx.destructorStorage, key);
                         if (destructor != null) {
-                            Object keyVal = ctxRef.get().keyStorage.get(key).get(Thread.currentThread().getId());
+                            Object keyVal = UtilAccess.get(UtilAccess.get(ctx.keyStorage, key), Thread.currentThread().getId());
                             if (keyVal != null) {
                                 try {
                                     LLVMPointer keyValPointer = LLVMPointer.cast(keyVal);
@@ -101,8 +101,8 @@ public class UtilStartThread {
                                     }
                                 } catch (Exception e) {
                                 }
-                                ctxRef.get().keyStorage.get(key).remove(Thread.currentThread());
-                                new InitStartOfNewThread(destructor, keyVal, this.ctxRef, false).run();
+                                UtilAccess.remove(UtilAccess.get(ctx.keyStorage, key), Thread.currentThread().getId());
+                                new InitStartOfNewThread(destructor, keyVal, this.ctx, false).run();
                             }
                         }
                     }

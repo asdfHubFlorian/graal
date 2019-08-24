@@ -39,6 +39,7 @@ import com.oracle.truffle.llvm.runtime.LLVMContext;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
+import com.oracle.truffle.llvm.runtime.util.PThreadCConstants;
 
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -84,8 +85,8 @@ public class LLVMPThreadRWLockIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "rwlock")
     public abstract static class LLVMPThreadRWLockDestroy extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            UtilAccess.removeLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            UtilAccess.remove(ctx.rwlockStorage, rwlock);
             return 0;
         }
     }
@@ -94,8 +95,8 @@ public class LLVMPThreadRWLockIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "attr")
     public abstract static class LLVMPThreadRWLockInit extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, LLVMPointer attr, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            UtilAccess.putLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock, new RWLock());
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, LLVMPointer attr, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            UtilAccess.put(ctx.rwlockStorage, rwlock, new RWLock());
             return 0;
         }
     }
@@ -103,14 +104,14 @@ public class LLVMPThreadRWLockIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "rwlock")
     public abstract static class LLVMPThreadRWLockRdlock extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            RWLock rwlockObj = (RWLock) UtilAccess.getLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            RWLock rwlockObj = (RWLock) UtilAccess.get(ctx.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized
                 // but it works anyway on most implementations
                 // so we init it here
                 rwlockObj = new RWLock();
-                UtilAccess.putLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock, rwlockObj);
+                UtilAccess.put(ctx.rwlockStorage, rwlock, rwlockObj);
             }
             rwlockObj.readLock();
             return 0;
@@ -121,30 +122,30 @@ public class LLVMPThreadRWLockIntrinsics {
     public abstract static class LLVMPThreadRWLockTryrdlock extends LLVMBuiltin {
         // [EBUSY] when not lock not possible now
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            RWLock rwlockObj = (RWLock) UtilAccess.getLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            RWLock rwlockObj = (RWLock) UtilAccess.get(ctx.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized
                 // but it works anyway on most implementations
                 // so we init it here
                 rwlockObj = new RWLock();
-                UtilAccess.putLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock, rwlockObj);
+                UtilAccess.put(ctx.rwlockStorage, rwlock, rwlockObj);
             }
-            return rwlockObj.tryReadLock() ? 0 : ctxRef.get().pthreadConstants.getEBUSY();
+            return rwlockObj.tryReadLock() ? 0 : ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.EBUSY);
         }
     }
 
     @NodeChild(type = LLVMExpressionNode.class, value = "rwlock")
     public abstract static class LLVMPThreadRWLockWrlock extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            RWLock rwlockObj = (RWLock) UtilAccess.getLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            RWLock rwlockObj = (RWLock) UtilAccess.get(ctx.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized
                 // but it works anyway on most implementations
                 // so we init it here
                 rwlockObj = new RWLock();
-                UtilAccess.putLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock, rwlockObj);
+                UtilAccess.put(ctx.rwlockStorage, rwlock, rwlockObj);
             }
             rwlockObj.writeLock();
             return 0;
@@ -155,24 +156,24 @@ public class LLVMPThreadRWLockIntrinsics {
     public abstract static class LLVMPThreadRWLockTrywrlock extends LLVMBuiltin {
         // [EBUSY] when not lock not possible now
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            RWLock rwlockObj = (RWLock) UtilAccess.getLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            RWLock rwlockObj = (RWLock) UtilAccess.get(ctx.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized
                 // but it works anyway on most implementations
                 // so we init it here
                 rwlockObj = new RWLock();
-                UtilAccess.putLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock, rwlockObj);
+                UtilAccess.put(ctx.rwlockStorage, rwlock, rwlockObj);
             }
-            return rwlockObj.tryWriteLock() ? 0 : ctxRef.get().pthreadConstants.getEBUSY();
+            return rwlockObj.tryWriteLock() ? 0 : ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.EBUSY);
         }
     }
 
     @NodeChild(type = LLVMExpressionNode.class, value = "rwlock")
     public abstract static class LLVMPThreadRWLockUnlock extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) TruffleLanguage.ContextReference<LLVMContext> ctxRef) {
-            RWLock rwlockObj = (RWLock) UtilAccess.getLLVMPointerObj(ctxRef.get().rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            RWLock rwlockObj = (RWLock) UtilAccess.get(ctx.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized, but no error code specified
                 return 0;

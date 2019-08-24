@@ -31,117 +31,46 @@ package com.oracle.truffle.llvm.runtime.util;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
-import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 import com.oracle.truffle.llvm.runtime.memory.LLVMStack;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 public class PThreadCConstants {
+    private final ConcurrentHashMap<CConstant, Integer> valueMap;
     private final LLVMContext ctx;
-    private int EBUSY;
-    private boolean loadedEBUSY = false;
-    private int EINVAL;
-    private boolean loadedEINVAL = false;
-    private int EDEADLK;
-    private boolean loadedEDEADLK = false;
-    private int EPERM;
-    private boolean loadedEPERM = false;
-    private int PTHREADMUTEXDEFAULT;
-    private boolean loadedPTHREADMUTEXDEFAULT = false;
-    private int PTHREADMUTEXERRORCHECK;
-    private boolean loadedPTHREADMUTEXERRORCHECK = false;
-    private int PTHREADMUTEXNORMAL;
-    private boolean loadedPTHREADMUTEXNORMAL = false;
-    private int PTHREADMUTEXRECURSIVE;
-    private boolean loadedPTHREADMUTEXRECURSIVE = false;
 
     public PThreadCConstants(LLVMContext ctx) {
         this.ctx = ctx;
+        this.valueMap = new ConcurrentHashMap<>();
     }
 
-    public int getEBUSY() {
-        if (loadedEBUSY) {
-            return EBUSY;
+    public enum CConstant {
+        EBUSY("EBUSY"),
+        EINVAL("EINVAL"),
+        EDEADLK("EDEADLK"),
+        EPERM("EPERM"),
+        PTHREAD_MUTEX_DEFAULT("PTHREAD_MUTEX_DEFAULT"),
+        PTHREAD_MUTEX_ERRORCHECK("PTHREAD_MUTEX_ERRORCHECK"),
+        PTHREAD_MUTEX_NORMAL("PTHREAD_MUTEX_NORMAL"),
+        PTHREAD_MUTEX_RECURSIVE("PTHREAD_MUTEX_RECURSIVE");
+
+        public final String value;
+
+        CConstant(String val) {
+            this.value = val;
         }
-        RootCallTarget callTarget = ctx.getGlobalScope().getFunction("@__sulong_getEBUSY").getLLVMIRFunction();
-        LLVMStack.StackPointer sp1 =  ctx.getThreadingStack().getStack().newFrame();
-        EBUSY = (int) callTarget.call(sp1);
-        loadedEBUSY = true;
-        return EBUSY;
     }
 
-    public int getEINVAL() {
-        if (loadedEINVAL) {
-            return EINVAL;
+    public int getConstant(CConstant constant) {
+        if (valueMap.containsKey(constant)) {
+            return valueMap.get(constant);
         }
-        RootCallTarget callTarget = ctx.getGlobalScope().getFunction("@__sulong_getEINVAL").getLLVMIRFunction();
-        LLVMStack.StackPointer sp1 =  ctx.getThreadingStack().getStack().newFrame();
-        EINVAL = (int) callTarget.call(sp1);
-        loadedEINVAL = true;
-        return EINVAL;
-    }
-
-    public int getEDEADLK() {
-        if (loadedEDEADLK) {
-            return EDEADLK;
+        int value;
+        RootCallTarget callTarget = ctx.getGlobalScope().getFunction("@__sulong_get" + constant.value).getLLVMIRFunction();
+        try (LLVMStack.StackPointer sp =  ctx.getThreadingStack().getStack().newFrame()) {
+            value = (int) callTarget.call(sp);
         }
-        RootCallTarget callTarget = ctx.getGlobalScope().getFunction("@__sulong_getEDEADLK").getLLVMIRFunction();
-        LLVMStack.StackPointer sp1 =  ctx.getThreadingStack().getStack().newFrame();
-        EDEADLK = (int) callTarget.call(sp1);
-        loadedEDEADLK = true;
-        return EDEADLK;
-    }
-
-    public int getEPERM() {
-        if (loadedEPERM) {
-            return EPERM;
-        }
-        RootCallTarget callTarget = ctx.getGlobalScope().getFunction("@__sulong_getEPERM").getLLVMIRFunction();
-        LLVMStack.StackPointer sp1 =  ctx.getThreadingStack().getStack().newFrame();
-        EPERM = (int) callTarget.call(sp1);
-        loadedEPERM = true;
-        return EPERM;
-    }
-
-    public int getPTHREADMUTEXDEFAULT() {
-        if (loadedPTHREADMUTEXDEFAULT) {
-            return PTHREADMUTEXDEFAULT;
-        }
-        RootCallTarget callTarget = ctx.getGlobalScope().getFunction("@__sulong_getPTHREAD_MUTEX_DEFAULT").getLLVMIRFunction();
-        LLVMStack.StackPointer sp1 =  ctx.getThreadingStack().getStack().newFrame();
-        PTHREADMUTEXDEFAULT = (int) callTarget.call(sp1);
-        loadedPTHREADMUTEXDEFAULT = true;
-        return PTHREADMUTEXDEFAULT;
-    }
-
-    public int getPTHREADMUTEXERRORCHECK() {
-        if (loadedPTHREADMUTEXERRORCHECK) {
-            return PTHREADMUTEXERRORCHECK;
-        }
-        RootCallTarget callTarget = ctx.getGlobalScope().getFunction("@__sulong_getPTHREAD_MUTEX_ERRORCHECK").getLLVMIRFunction();
-        LLVMStack.StackPointer sp1 =  ctx.getThreadingStack().getStack().newFrame();
-        PTHREADMUTEXERRORCHECK = (int) callTarget.call(sp1);
-        loadedPTHREADMUTEXERRORCHECK = true;
-        return PTHREADMUTEXERRORCHECK;
-    }
-
-    public int getPTHREADMUTEXNORMAL() {
-        if (loadedPTHREADMUTEXNORMAL) {
-            return PTHREADMUTEXNORMAL;
-        }
-        RootCallTarget callTarget = ctx.getGlobalScope().getFunction("@__sulong_getPTHREAD_MUTEX_NORMAL").getLLVMIRFunction();
-        LLVMStack.StackPointer sp1 =  ctx.getThreadingStack().getStack().newFrame();
-        PTHREADMUTEXNORMAL = (int) callTarget.call(sp1);
-        loadedPTHREADMUTEXNORMAL = true;
-        return PTHREADMUTEXNORMAL;
-    }
-
-    public int getPTHREADMUTEXRECURSIVE() {
-        if (loadedPTHREADMUTEXRECURSIVE) {
-            return PTHREADMUTEXRECURSIVE;
-        }
-        RootCallTarget callTarget = ctx.getGlobalScope().getFunction("@__sulong_getPTHREAD_MUTEX_RECURSIVE").getLLVMIRFunction();
-        LLVMStack.StackPointer sp1 =  ctx.getThreadingStack().getStack().newFrame();
-        PTHREADMUTEXRECURSIVE = (int) callTarget.call(sp1);
-        loadedPTHREADMUTEXRECURSIVE = true;
-        return PTHREADMUTEXRECURSIVE;
+        valueMap.put(constant, value);
+        return value;
     }
 }
