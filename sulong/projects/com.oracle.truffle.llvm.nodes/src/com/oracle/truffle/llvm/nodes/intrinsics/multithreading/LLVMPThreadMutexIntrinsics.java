@@ -30,7 +30,6 @@
 package com.oracle.truffle.llvm.nodes.intrinsics.multithreading;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -87,7 +86,6 @@ public class LLVMPThreadMutexIntrinsics {
                             }
                             Thread.sleep(Long.MAX_VALUE);
                         } catch (InterruptedException e) {
-                            waitingThreads.remove(Thread.currentThread());
                             break;
                         }
                     }
@@ -104,6 +102,8 @@ public class LLVMPThreadMutexIntrinsics {
 
             // this is not in the spec, but in the native implementation
             // and this behavior is needed for running the benchmark "threadring" form the shootout suite
+
+            // but actually this does not work properly:
             if (this.type == MutexType.DEFAULT_NORMAL) {
                 while (true) {
                     try {
@@ -123,6 +123,14 @@ public class LLVMPThreadMutexIntrinsics {
         }
 
         public boolean tryLock() {
+            if (this.type == MutexType.RECURSIVE) {
+                return internLock.tryLock();
+            }
+            // if it's not a recursive mutex and currently owned trylock shall return false
+            if (internLock.isHeldByCurrentThread()) {
+                return false;
+            }
+            // if it's not currently owned we can just call trylock
             return internLock.tryLock();
         }
 
@@ -231,15 +239,18 @@ public class LLVMPThreadMutexIntrinsics {
         // [EDEADLK] if errorcheck mutex and already owned
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
-            Mutex mutexObj = (Mutex) UtilAccess.get(ctx.mutexStorage, mutex);
-            if (mutexObj == null) {
-                // mutex is not initialized
-                // but it works anyway on most implementations
-                // so we will make it work here too, just using default type
-                mutexObj = new Mutex(Mutex.MutexType.DEFAULT_NORMAL);
-                UtilAccess.put(ctx.mutexStorage, mutex, mutexObj);
+            Mutex mutexObj = null;
+            synchronized (mutex) {
+                mutexObj = (Mutex) UtilAccess.get(ctx.mutexStorage, mutex);
+                if (mutexObj == null) {
+                    // mutex is not initialized
+                    // but it works anyway on most implementations
+                    // so we will make it work here too, just using default type
+                    mutexObj = new Mutex(Mutex.MutexType.DEFAULT_NORMAL);
+                    UtilAccess.put(ctx.mutexStorage, mutex, mutexObj);
+                }
+                // lock only returns false when mutex is errorcheck type and current thread already holds it
             }
-            // lock only returns false when mutex is errorcheck type and current thread already holds it
             return mutexObj.lock() ? 0 : ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.EDEADLK);
         }
     }
@@ -249,13 +260,16 @@ public class LLVMPThreadMutexIntrinsics {
         // [EBUSY] when already locked
         @Specialization
         protected int doIntrinsic(VirtualFrame frame, LLVMPointer mutex, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
-            Mutex mutexObj = (Mutex) UtilAccess.get(ctx.mutexStorage, mutex);
-            if (mutexObj == null) {
-                // mutex is not initialized
-                // but it works anyway on most implementations
-                // so we will make it work here too, just using default type
-                mutexObj = new Mutex(Mutex.MutexType.DEFAULT_NORMAL);
-                UtilAccess.put(ctx.mutexStorage, mutex, mutexObj);
+            Mutex mutexObj = null;
+            synchronized (mutex) {
+                mutexObj = (Mutex) UtilAccess.get(ctx.mutexStorage, mutex);
+                if (mutexObj == null) {
+                    // mutex is not initialized
+                    // but it works anyway on most implementations
+                    // so we will make it work here too, just using default type
+                    mutexObj = new Mutex(Mutex.MutexType.DEFAULT_NORMAL);
+                    UtilAccess.put(ctx.mutexStorage, mutex, mutexObj);
+                }
             }
             return mutexObj.tryLock() ? 0 : ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.EBUSY);
         }
