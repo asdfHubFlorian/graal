@@ -75,6 +75,16 @@ public class LLVMPThreadKeyIntrinsics {
     }
 
     @NodeChild(type = LLVMExpressionNode.class, value = "key")
+    public abstract static class LLVMPThreadKeyDelete extends LLVMBuiltin {
+        @Specialization
+        protected int doIntrinsic(VirtualFrame frame, int key, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            UtilAccess.remove(ctx.keyStorage, key);
+            UtilAccess.remove(ctx.destructorStorage, key);
+            return 0;
+        }
+    }
+
+    @NodeChild(type = LLVMExpressionNode.class, value = "key")
     public abstract static class LLVMPThreadGetspecific extends LLVMBuiltin {
         // no relevant error code handling here
         @Specialization

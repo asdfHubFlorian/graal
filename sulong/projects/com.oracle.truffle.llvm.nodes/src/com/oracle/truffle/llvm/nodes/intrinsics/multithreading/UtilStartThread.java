@@ -46,6 +46,8 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 
+import java.util.concurrent.ConcurrentMap;
+
 public class UtilStartThread {
     static class InitStartOfNewThread implements Runnable {
         private boolean isThread;
@@ -91,9 +93,15 @@ public class UtilStartThread {
                 if (this.isThread) {
                     for (int key = 1; key <= ctx.curKeyVal; key++) {
                         LLVMPointer destructor = UtilAccess.get(ctx.destructorStorage, key);
-                        if (destructor != null) {
-                            Object keyVal = UtilAccess.get(UtilAccess.get(ctx.keyStorage, key), Thread.currentThread().getId());
+                        if (destructor != null && !destructor.isNull()) {
+                            ConcurrentMap<Long, LLVMPointer> specValueMap = UtilAccess.get(ctx.keyStorage, key);
+                            // if key was deleted continue with next
+                            if (specValueMap == null) {
+                                continue;
+                            }
+                            Object keyVal = UtilAccess.get(specValueMap, Thread.currentThread().getId());
                             if (keyVal != null) {
+                                // if null pointer continue with next
                                 try {
                                     LLVMPointer keyValPointer = LLVMPointer.cast(keyVal);
                                     if (keyValPointer.isNull()) {
@@ -101,7 +109,7 @@ public class UtilStartThread {
                                     }
                                 } catch (Exception e) {
                                 }
-                                UtilAccess.remove(UtilAccess.get(ctx.keyStorage, key), Thread.currentThread().getId());
+                                UtilAccess.remove(specValueMap, Thread.currentThread().getId());
                                 new InitStartOfNewThread(destructor, keyVal, this.ctx, false).run();
                             }
                         }
