@@ -29,7 +29,7 @@
  */
 package com.oracle.truffle.llvm.nodes.intrinsics.multithreading;
 
-import com.oracle.truffle.api.TruffleLanguage;
+// does differ from the pthreads cond vars, so if you want to use cond vars disable those intrinsics
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -59,13 +59,25 @@ public class LLVMPThreadCondIntrinsics {
             this.type = Type.DEFAULT;
         }
 
+        // condition differs from pthread cond var
+        // cond var can broadcast and signal even if mutex is not owned
+        // condition can't, it leads to a IllegalMonitorStateException
         public void broadcast() {
+            if (!curMutex.internLock.isHeldByCurrentThread()) {
+                return;
+            }
             if (condition != null) {
                 condition.signalAll();
             }
         }
 
+        // condition differs from pthread cond var
+        // cond var can broadcast and signal even if mutex is not owned
+        // condition can't, it leads to a IllegalMonitorStateException
         public void signal() {
+            if (curMutex != null && !curMutex.internLock.isHeldByCurrentThread()) {
+                return;
+            }
             if (condition != null) {
                 condition.signal();
             }

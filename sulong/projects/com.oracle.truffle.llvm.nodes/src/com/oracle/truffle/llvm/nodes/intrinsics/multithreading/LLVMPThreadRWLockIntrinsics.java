@@ -77,8 +77,17 @@ public class LLVMPThreadRWLockIntrinsics {
         }
 
         public void unlock() {
-            this.readWriteLock.readLock().unlock();
-            this.readWriteLock.writeLock().unlock();
+            // exception handling, because in pthread you unlock read and write at once
+            // but here it's two separate locks
+            // so if you only have a readlock and want to unlock, the writeLock.unlock() will fail with a exception and vice versa
+            try {
+                this.readWriteLock.readLock().unlock();
+            } catch (Exception e) {
+            }
+            try {
+                this.readWriteLock.writeLock().unlock();
+            } catch (Exception e) {
+            }
         }
     }
 

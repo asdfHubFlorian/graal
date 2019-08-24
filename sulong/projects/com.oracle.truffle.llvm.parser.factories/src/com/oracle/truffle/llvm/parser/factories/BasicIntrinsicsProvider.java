@@ -333,6 +333,7 @@ public class BasicIntrinsicsProvider implements LLVMIntrinsicProvider, ContextEx
         add("@pthread_attr_init", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadAttrInitNodeGen.create(args.get(1), null));
         add("@pthread_attr_destroy", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadAttrDestroyNodeGen.create(args.get(1), null));
         add("@pthread_attr_setdetachstate", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadAttrSetdetachstateNodeGen.create(args.get(1), args.get(2), null));
+        // if you want to use cond vars, also comment out the mutex intrinsics, only works when both native
         add("@pthread_mutexattr_destroy", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrDestroyNodeGen.create(args.get(1), null));
         add("@pthread_mutexattr_init", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrInitNodeGen.create(args.get(1), null));
         add("@pthread_mutexattr_settype", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrSettypeNodeGen.create(args.get(1), args.get(2), null));
@@ -341,11 +342,11 @@ public class BasicIntrinsicsProvider implements LLVMIntrinsicProvider, ContextEx
         add("@pthread_mutex_lock", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexLockNodeGen.create(args.get(1), null));
         add("@pthread_mutex_trylock", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexTrylockNodeGen.create(args.get(1), null));
         add("@pthread_mutex_unlock", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexUnlockNodeGen.create(args.get(1), null));
-        add("@pthread_cond_destroy", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondDestroyNodeGen.create(args.get(1), null));
-        add("@pthread_cond_init", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondInitNodeGen.create(args.get(1), args.get(2), null));
-        add("@pthread_cond_broadcast", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondBroadcastNodeGen.create(args.get(1), null));
-        add("@pthread_cond_signal", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondSignalNodeGen.create(args.get(1), null));
-        add("@pthread_cond_wait", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondWaitNodeGen.create(args.get(1), args.get(2), null));
+        // add("@pthread_cond_destroy", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondDestroyNodeGen.create(args.get(1), null));
+        // add("@pthread_cond_init", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondInitNodeGen.create(args.get(1), args.get(2), null));
+        // add("@pthread_cond_broadcast", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondBroadcastNodeGen.create(args.get(1), null));
+        // add("@pthread_cond_signal", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondSignalNodeGen.create(args.get(1), null));
+        // add("@pthread_cond_wait", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondWaitNodeGen.create(args.get(1), args.get(2), null));
         add("@pthread_rwlock_destroy", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockDestroyNodeGen.create(args.get(1), null));
         add("@pthread_rwlock_init", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockInitNodeGen.create(args.get(1), args.get(2), null));
         add("@pthread_rwlock_rdlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockRdlockNodeGen.create(args.get(1), null));

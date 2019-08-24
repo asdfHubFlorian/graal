@@ -124,21 +124,21 @@ int pthread_cancel(pthread_t thread) {
 }
 // void  pthread_cleanup_push(void*, void *);
 // void  pthread_cleanup_pop(int);
-int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime) {
-  ERR_UNSUPPORTED(pthread_cond_timedwait);
-}
-int pthread_condattr_destroy(pthread_condattr_t *attr) {
-  ERR_UNSUPPORTED(pthread_condattr_destroy);
-}
-int pthread_condattr_getpshared(const pthread_condattr_t *restrict attr, int *restrict pshared) {
-  ERR_UNSUPPORTED(pthread_condattr_getpshared);
-}
-int pthread_condattr_init(pthread_condattr_t *attr) {
-  ERR_UNSUPPORTED(pthread_condattr_init);
-}
-int pthread_condattr_setpshared(pthread_condattr_t *attr, int pshared) {
-  ERR_UNSUPPORTED(pthread_condattr_setpshared);
-}
+//int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime) {
+//  ERR_UNSUPPORTED(pthread_cond_timedwait);
+//}
+//int pthread_condattr_destroy(pthread_condattr_t *attr) {
+//  ERR_UNSUPPORTED(pthread_condattr_destroy);
+//}
+//int pthread_condattr_getpshared(const pthread_condattr_t *restrict attr, int *restrict pshared) {
+//  ERR_UNSUPPORTED(pthread_condattr_getpshared);
+//}
+//int pthread_condattr_init(pthread_condattr_t *attr) {
+//  ERR_UNSUPPORTED(pthread_condattr_init);
+//}
+//int pthread_condattr_setpshared(pthread_condattr_t *attr, int pshared) {
+//  ERR_UNSUPPORTED(pthread_condattr_setpshared);
+//}
 int pthread_detach(pthread_t thread) {
   ERR_UNSUPPORTED(pthread_detach);
 }
@@ -160,9 +160,9 @@ int pthread_getschedparam(pthread_t thread, int *restrict policy, struct sched_p
 //int pthread_key_create(pthread_key_t *key, void (*destructor)(void *)) {
 //  ERR_UNSUPPORTED(pthread_key_create);
 //}
-int pthread_key_delete(pthread_key_t key) {
-  ERR_UNSUPPORTED(pthread_key_delete);
-}
+//int pthread_key_delete(pthread_key_t key) {
+//  ERR_UNSUPPORTED(pthread_key_delete);
+//}
 int pthread_mutex_getprioceiling(const pthread_mutex_t *restrict mutex, int *restrict prioceiling) {
   ERR_UNSUPPORTED(pthread_mutex_getprioceiling);
 }
