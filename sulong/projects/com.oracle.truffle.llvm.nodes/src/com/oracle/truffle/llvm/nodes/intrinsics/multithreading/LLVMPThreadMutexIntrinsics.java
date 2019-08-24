@@ -103,7 +103,6 @@ public class LLVMPThreadMutexIntrinsics {
             // this is not in the spec, but in the native implementation
             // and this behavior is needed for running the benchmark "threadring" form the shootout suite
 
-            // but actually this does not work properly:
             if (this.type == MutexType.DEFAULT_NORMAL) {
                 while (true) {
                     try {
