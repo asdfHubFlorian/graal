@@ -47,6 +47,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class LLVMPThreadRWLockIntrinsics {
     public static class RWLock {
         private final ReadWriteLock readWriteLock;
+        private Thread writeOwner;
 
         public RWLock() {
             this.readWriteLock = new ReentrantReadWriteLock();
@@ -64,11 +65,17 @@ public class LLVMPThreadRWLockIntrinsics {
             return this.readWriteLock.readLock().tryLock();
         }
 
-        public void writeLock() {
+        public boolean writeLock() {
+            if (this.writeOwner == Thread.currentThread()) {
+                return false;
+            }
             try {
                 this.readWriteLock.writeLock().lockInterruptibly();
+                this.writeOwner = Thread.currentThread();
+                return true;
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                return false;
             }
         }
 
@@ -86,6 +93,7 @@ public class LLVMPThreadRWLockIntrinsics {
             }
             try {
                 this.readWriteLock.writeLock().unlock();
+                this.writeOwner = null;
             } catch (Exception e) {
             }
         }
@@ -156,8 +164,7 @@ public class LLVMPThreadRWLockIntrinsics {
                 rwlockObj = new RWLock();
                 UtilAccess.put(ctx.rwlockStorage, rwlock, rwlockObj);
             }
-            rwlockObj.writeLock();
-            return 0;
+            return rwlockObj.writeLock() ? 0 : ctx.pthreadConstants.getConstant(PThreadCConstants.CConstant.EDEADLK);
         }
     }
 
