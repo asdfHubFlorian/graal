@@ -90,6 +90,9 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 
 public final class LLVMContext {
+    public long startTime;
+    public long stopTime;
+
     public final ConcurrentMap<LLVMPointer, Object> condStorage;
     public final ConcurrentMap<LLVMPointer, Object> mutexStorage;
     public final ConcurrentMap<LLVMPointer, Object> rwlockStorage;

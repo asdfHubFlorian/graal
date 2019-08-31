@@ -29,11 +29,17 @@
  */
 package com.oracle.truffle.llvm.nodes.intrinsics.multithreading;
 
+import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.llvm.nodes.intrinsics.llvm.LLVMBuiltin;
+import com.oracle.truffle.llvm.runtime.LLVMContext;
+import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
+
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class LLVMPThreadIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class)
@@ -45,6 +51,30 @@ public class LLVMPThreadIntrinsics {
                 return 15;
             }
             return 35; // just to test return 35
+        }
+    }
+
+    public abstract static class LLVMPThreadStartTime extends LLVMBuiltin {
+        @Specialization
+        protected int doIntrinsic(VirtualFrame frame, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            ctx.startTime = System.currentTimeMillis();
+            return 0;
+        }
+    }
+
+    public abstract static class LLVMPThreadStopTime extends LLVMBuiltin {
+        @Specialization
+        protected int doIntrinsic(VirtualFrame frame, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
+            ctx.stopTime = System.currentTimeMillis();
+            long time = ctx.stopTime - ctx.startTime;
+            try (FileWriter fw = new FileWriter("/home/florian/sulong_time", false)) {
+                fw.write("start: " + ctx.startTime + System.lineSeparator());
+                fw.write("stop: " + ctx.stopTime + System.lineSeparator());
+                fw.write("time: " + time + " ms" + System.lineSeparator());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return 0;
         }
     }
 }
