@@ -77,8 +77,10 @@ public class LLVMPThreadMutexIntrinsics {
         public boolean lock() {
             if (this.internLock.isHeldByCurrentThread()) {
                 if (this.type == MutexType.DEFAULT_NORMAL) {
-                    // deadlock until another thread unlocks it
-                    // is not defined in spec, but the native behavior
+                    // deadlock, only until another thread unlocks it
+                    // lock and unlock by different threads leads to undefined behaviour in spec
+                    // in the native implementation
+                    // it is possible to lock and unlock default mutexes in different threads tho
                     while (true) {
                         try {
                             if (!waitingThreads.contains(Thread.currentThread())) {
@@ -100,8 +102,7 @@ public class LLVMPThreadMutexIntrinsics {
             // the intern lock gets replaced by a new unlocked one, and the waiting threads get interrupted
             // so they will call "lock" on the new intern lock
 
-            // this is not in the spec, but in the native implementation
-            // and this behavior is needed for running the benchmark "threadring" form the shootout suite
+            // this is the behaviour of the native implementation
 
             if (this.type == MutexType.DEFAULT_NORMAL) {
                 while (true) {

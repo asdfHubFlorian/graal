@@ -66,6 +66,7 @@ public class LLVMPThreadThreadIntrinsics {
             // store current id in thread variable
             store.executeWithTarget(thread, t.getId());
             // store thread with thread id in context
+            UtilAccess.add(ctx.createdThreads, t);
             UtilAccess.put(ctx.threadStorage, t.getId(), t);
             // start thread
             t.start();

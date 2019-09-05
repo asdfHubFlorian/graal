@@ -63,9 +63,9 @@ public class LLVMPThreadCondIntrinsics {
         // cond var can broadcast and signal even if mutex is not owned
         // condition can't, it leads to a IllegalMonitorStateException
         public void broadcast() {
-            if (!curMutex.internLock.isHeldByCurrentThread()) {
-                return;
-            }
+            // if (!curMutex.internLock.isHeldByCurrentThread()) {
+                // return;
+            // }
             if (condition != null) {
                 condition.signalAll();
             }
@@ -75,9 +75,9 @@ public class LLVMPThreadCondIntrinsics {
         // cond var can broadcast and signal even if mutex is not owned
         // condition can't, it leads to a IllegalMonitorStateException
         public void signal() {
-            if (curMutex != null && !curMutex.internLock.isHeldByCurrentThread()) {
-                return;
-            }
+            // if (curMutex != null && !curMutex.internLock.isHeldByCurrentThread()) {
+                // return;
+            // }
             if (condition != null) {
                 condition.signal();
             }

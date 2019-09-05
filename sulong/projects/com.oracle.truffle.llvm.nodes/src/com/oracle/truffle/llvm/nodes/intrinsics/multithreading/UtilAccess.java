@@ -31,9 +31,15 @@ package com.oracle.truffle.llvm.nodes.intrinsics.multithreading;
 
 import com.oracle.truffle.api.CompilerDirectives;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 public class UtilAccess {
+    @CompilerDirectives.TruffleBoundary
+    public static <T> void add(List<T> list, T object) {
+        list.add(object);
+    }
+
     @CompilerDirectives.TruffleBoundary
     public static <K, V> void put(ConcurrentMap<K, V> c, K key, V value) {
         c.put(key, value);

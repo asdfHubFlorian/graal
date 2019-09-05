@@ -101,6 +101,9 @@ public final class LLVMContext {
     public final ConcurrentMap<Long, Object> retValStorage;
     public final ConcurrentMap<Long, Thread> threadStorage;
 
+    // another list with all created threads for the case that a thread is is not unique all of the runtime
+    public final List<Thread> createdThreads;
+
     public final List<LLVMPointer> onceStorage;
     public final ConcurrentMap<Integer, ConcurrentMap<Long, LLVMPointer>> keyStorage;
     public final ConcurrentMap<Integer, LLVMPointer> destructorStorage;
@@ -243,6 +246,7 @@ public final class LLVMContext {
         this.destructorStorage = new ConcurrentHashMap<>();
         this.curKeyVal = 0;
         this.pthreadConstants = new PThreadCConstants(this);
+        this.createdThreads = new ArrayList<>();
     }
 
     private static final class InitializeContextNode extends LLVMStatementNode {
@@ -414,6 +418,15 @@ public final class LLVMContext {
     }
 
     public void dispose(LLVMMemory memory) {
+        // join all created pthread - threads
+        for (int i = 0; i < createdThreads.size(); i++) {
+            try {
+                createdThreads.get(i).join();
+                language.disposeThread(this, createdThreads.get(i));
+            } catch (InterruptedException e) {
+            }
+        }
+
         printNativeCallStatistic();
 
         if (isInitialized()) {
