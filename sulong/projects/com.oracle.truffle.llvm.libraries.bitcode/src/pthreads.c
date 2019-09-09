@@ -122,42 +122,42 @@ int pthread_condattr_init(pthread_condattr_t *attr) {
 int pthread_condattr_setpshared(pthread_condattr_t *attr, int pshared) {
   ERR_UNSUPPORTED(pthread_condattr_setpshared);
 }
-int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void *), void *restrict arg) {
-  ERR_UNSUPPORTED(pthread_create);
-}
+//int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void *), void *restrict arg) {
+//  ERR_UNSUPPORTED(pthread_create);
+//}
 int pthread_detach(pthread_t thread) {
   ERR_UNSUPPORTED(pthread_detach);
 }
 // this function might be defined as a macro
-#ifndef pthread_equal
-int pthread_equal(pthread_t t1, pthread_t t2) {
-  ERR_UNSUPPORTED(pthread_equal);
-}
-#endif
-void pthread_exit(void *value_ptr) {
-  ERR_UNSUPPORTED(pthread_exit);
-}
+//#ifndef pthread_equal
+//int pthread_equal(pthread_t t1, pthread_t t2) {
+//  ERR_UNSUPPORTED(pthread_equal);
+//}
+//#endif
+//void pthread_exit(void *value_ptr) {
+//  ERR_UNSUPPORTED(pthread_exit);
+//}
 int pthread_getconcurrency(void) {
   ERR_UNSUPPORTED(pthread_getconcurrency);
 }
 int pthread_getschedparam(pthread_t thread, int *restrict policy, struct sched_param *restrict param) {
   ERR_UNSUPPORTED(pthread_getschedparam);
 }
-void *pthread_getspecific(pthread_key_t key) {
-  ERR_UNSUPPORTED(pthread_getspecific);
-}
-int pthread_join(pthread_t thread, void **value_ptr) {
-  ERR_UNSUPPORTED(pthread_join);
-}
-int pthread_key_create(pthread_key_t *key, void (*destructor)(void *)) {
-  ERR_UNSUPPORTED(pthread_key_create);
-}
-int pthread_key_delete(pthread_key_t key) {
-  ERR_UNSUPPORTED(pthread_key_delete);
-}
-int pthread_once(pthread_once_t *once_control, void (*init_routine)(void)) {
-  ERR_UNSUPPORTED(pthread_once);
-}
+//void *pthread_getspecific(pthread_key_t key) {
+//  ERR_UNSUPPORTED(pthread_getspecific);
+//}
+//int pthread_join(pthread_t thread, void **value_ptr) {
+//  ERR_UNSUPPORTED(pthread_join);
+//}
+//int pthread_key_create(pthread_key_t *key, void (*destructor)(void *)) {
+//  ERR_UNSUPPORTED(pthread_key_create);
+//}
+//int pthread_key_delete(pthread_key_t key) {
+//  ERR_UNSUPPORTED(pthread_key_delete);
+//}
+//int pthread_once(pthread_once_t *once_control, void (*init_routine)(void)) {
+//  ERR_UNSUPPORTED(pthread_once);
+//}
 int pthread_rwlock_destroy(pthread_rwlock_t *rwlock) {
   ERR_UNSUPPORTED(pthread_rwlock_destroy);
 }
@@ -191,9 +191,9 @@ int pthread_rwlockattr_init(pthread_rwlockattr_t *attr) {
 int pthread_rwlockattr_setpshared(pthread_rwlockattr_t *attr, int pshared) {
   ERR_UNSUPPORTED(pthread_rwlockattr_setpshared);
 }
-pthread_t pthread_self(void) {
-  ERR_UNSUPPORTED(pthread_self);
-}
+//pthread_t pthread_self(void) {
+//  ERR_UNSUPPORTED(pthread_self);
+//}
 int pthread_setcancelstate(int state, int *oldstate) {
   ERR_UNSUPPORTED(pthread_setcancelstate);
 }
@@ -206,9 +206,9 @@ int pthread_setconcurrency(int new_level) {
 int pthread_setschedparam(pthread_t thread, int policy, const struct sched_param *param) {
   ERR_UNSUPPORTED(pthread_setschedparam);
 }
-int pthread_setspecific(pthread_key_t key, const void *value) {
-  ERR_UNSUPPORTED(pthread_setspecific);
-}
+//int pthread_setspecific(pthread_key_t key, const void *value) {
+//  ERR_UNSUPPORTED(pthread_setspecific);
+//}
 void pthread_testcancel(void) {
   // do nothing - this is fine as long as no other pthread methods are supported
 }
