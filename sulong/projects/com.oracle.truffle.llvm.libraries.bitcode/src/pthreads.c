@@ -92,24 +92,24 @@ int pthread_cancel(pthread_t thread) {
 }
 // void  pthread_cleanup_push(void*, void *);
 // void  pthread_cleanup_pop(int);
-int pthread_cond_broadcast(pthread_cond_t *cond) {
-  ERR_UNSUPPORTED(pthread_cond_broadcast);
-}
-int pthread_cond_destroy(pthread_cond_t *cond) {
-  ERR_UNSUPPORTED(pthread_cond_destroy);
-}
-int pthread_cond_init(pthread_cond_t *restrict cond, const pthread_condattr_t *restrict attr) {
-  ERR_UNSUPPORTED(pthread_cond_init);
-}
-int pthread_cond_signal(pthread_cond_t *cond) {
-  ERR_UNSUPPORTED(pthread_cond_signal);
-}
-int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime) {
-  ERR_UNSUPPORTED(pthread_cond_timedwait);
-}
-int pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex) {
-  ERR_UNSUPPORTED(pthread_cond_wait);
-}
+//int pthread_cond_broadcast(pthread_cond_t *cond) {
+//  ERR_UNSUPPORTED(pthread_cond_broadcast);
+//}
+//int pthread_cond_destroy(pthread_cond_t *cond) {
+//  ERR_UNSUPPORTED(pthread_cond_destroy);
+//}
+//int pthread_cond_init(pthread_cond_t *restrict cond, const pthread_condattr_t *restrict attr) {
+//  ERR_UNSUPPORTED(pthread_cond_init);
+//}
+//int pthread_cond_signal(pthread_cond_t *cond) {
+//  ERR_UNSUPPORTED(pthread_cond_signal);
+//}
+//int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime) {
+//  ERR_UNSUPPORTED(pthread_cond_timedwait);
+//}
+//int pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex) {
+//  ERR_UNSUPPORTED(pthread_cond_wait);
+//}
 int pthread_condattr_destroy(pthread_condattr_t *attr) {
   ERR_UNSUPPORTED(pthread_condattr_destroy);
 }
@@ -158,27 +158,27 @@ int pthread_getschedparam(pthread_t thread, int *restrict policy, struct sched_p
 //int pthread_once(pthread_once_t *once_control, void (*init_routine)(void)) {
 //  ERR_UNSUPPORTED(pthread_once);
 //}
-int pthread_rwlock_destroy(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_destroy);
-}
-int pthread_rwlock_init(pthread_rwlock_t *restrict rwlock, const pthread_rwlockattr_t *restrict attr) {
-  ERR_UNSUPPORTED(pthread_rwlock_init);
-}
-int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_rdlock);
-}
-int pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_tryrdlock);
-}
-int pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_trywrlock);
-}
-int pthread_rwlock_unlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_unlock);
-}
-int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_wrlockk);
-}
+//int pthread_rwlock_destroy(pthread_rwlock_t *rwlock) {
+//  ERR_UNSUPPORTED(pthread_rwlock_destroy);
+//}
+//int pthread_rwlock_init(pthread_rwlock_t *restrict rwlock, const pthread_rwlockattr_t *restrict attr) {
+//  ERR_UNSUPPORTED(pthread_rwlock_init);
+//}
+//int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock) {
+//  ERR_UNSUPPORTED(pthread_rwlock_rdlock);
+//}
+//int pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock) {
+//  ERR_UNSUPPORTED(pthread_rwlock_tryrdlock);
+//}
+//int pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock) {
+//  ERR_UNSUPPORTED(pthread_rwlock_trywrlock);
+//}
+//int pthread_rwlock_unlock(pthread_rwlock_t *rwlock) {
+//  ERR_UNSUPPORTED(pthread_rwlock_unlock);
+//}
+//int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock) {
+//  ERR_UNSUPPORTED(pthread_rwlock_wrlockk);
+//}
 int pthread_rwlockattr_destroy(pthread_rwlockattr_t *attr) {
   ERR_UNSUPPORTED(pthread_rwlockattr_destroy);
 }
