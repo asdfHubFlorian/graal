@@ -31,6 +31,8 @@ package com.oracle.truffle.llvm.runtime;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,6 +45,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.oracle.truffle.llvm.runtime.util.PThreadCConstants;
 import org.graalvm.collections.EconomicMap;
 
 import com.oracle.truffle.api.CallTarget;
@@ -87,6 +90,27 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 
 public final class LLVMContext {
+    public long startTime;
+    public long stopTime;
+
+    public final ConcurrentMap<LLVMPointer, Object> condStorage;
+    public final ConcurrentMap<LLVMPointer, Object> mutexStorage;
+    public final ConcurrentMap<LLVMPointer, Object> rwlockStorage;
+
+    // the long-key is the thread-id
+    public final ConcurrentMap<Long, Object> retValStorage;
+    public final ConcurrentMap<Long, Thread> threadStorage;
+
+    // another list with all created threads for the case that a thread is is not unique all of the runtime
+    public final List<Thread> createdThreads;
+
+    public final List<LLVMPointer> onceStorage;
+    public final ConcurrentMap<Integer, ConcurrentMap<Long, LLVMPointer>> keyStorage;
+    public final ConcurrentMap<Integer, LLVMPointer> destructorStorage;
+    public final PThreadCConstants pthreadConstants;
+    public CallTarget pthreadCallTarget = null;
+    public int curKeyVal;
+
     private final List<Path> libraryPaths = new ArrayList<>();
     @CompilationFinal private Path internalLibraryPath;
     private final List<ExternalLibrary> externalLibraries = new ArrayList<>();
@@ -212,6 +236,17 @@ public final class LLVMContext {
         } else {
             tracer = null;
         }
+        this.condStorage = new ConcurrentHashMap<>();
+        this.mutexStorage = new ConcurrentHashMap<>();
+        this.rwlockStorage = new ConcurrentHashMap<>();
+        this.retValStorage = new ConcurrentHashMap<>();
+        this.threadStorage = new ConcurrentHashMap<>();
+        this.onceStorage = new ArrayList<>();
+        this.keyStorage = new ConcurrentHashMap<>();
+        this.destructorStorage = new ConcurrentHashMap<>();
+        this.curKeyVal = 0;
+        this.pthreadConstants = new PThreadCConstants(this);
+        this.createdThreads = new ArrayList<>();
     }
 
     private static final class InitializeContextNode extends LLVMStatementNode {
@@ -383,6 +418,15 @@ public final class LLVMContext {
     }
 
     public void dispose(LLVMMemory memory) {
+        // join all created pthread - threads
+        for (int i = 0; i < createdThreads.size(); i++) {
+            try {
+                createdThreads.get(i).join();
+                language.disposeThread(this, createdThreads.get(i));
+            } catch (InterruptedException e) {
+            }
+        }
+
         printNativeCallStatistic();
 
         if (isInitialized()) {

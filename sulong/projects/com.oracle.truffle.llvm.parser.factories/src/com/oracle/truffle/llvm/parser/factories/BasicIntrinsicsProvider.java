@@ -45,45 +45,12 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.llvm.nodes.func.LLVMArgNodeGen;
 import com.oracle.truffle.llvm.nodes.func.LLVMRaiseExceptionNode;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMAbortNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMACosNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMASinNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMATan2NodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMATanNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMAbsNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMCeilNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMCosNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMCoshNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMExp2NodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMExpNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMExpm1NodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMFAbsNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMFloorNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMFmodNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMLdexpNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMLog10NodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMLog1pNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMLog2NodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMLogNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMMaxnumNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMMinnumNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMModfNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMPowNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMRintNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMSinNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMSinhNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMSqrtNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMTanNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.LLVMTanhNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCTypeIntrinsicsFactory.LLVMIsalphaNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCTypeIntrinsicsFactory.LLVMIsspaceNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCTypeIntrinsicsFactory.LLVMIsupperNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCTypeIntrinsicsFactory.LLVMToUpperNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCTypeIntrinsicsFactory.LLVMTolowerNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMExitNodeGen;
+import com.oracle.truffle.llvm.nodes.intrinsics.c.*;
 import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMMemIntrinsicFactory.LLVMLibcMemcpyNodeGen;
 import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMMemIntrinsicFactory.LLVMLibcMemsetNodeGen;
+import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCMathsIntrinsicsFactory.*;
+import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMCTypeIntrinsicsFactory.*;
+import com.oracle.truffle.llvm.nodes.intrinsics.interop.*;
 import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMSignalNodeGen;
 import com.oracle.truffle.llvm.nodes.intrinsics.c.LLVMSyscall;
 import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMLoadLibraryNodeGen;
@@ -107,16 +74,6 @@ import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMPolyglotRemoveFactor
 import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMPolyglotRemoveFactory.LLVMPolyglotRemoveMemberNodeGen;
 import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMPolyglotWriteFactory.LLVMPolyglotPutMemberNodeGen;
 import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMPolyglotWriteFactory.LLVMPolyglotSetArrayElementNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMTruffleCannotBeHandleNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMTruffleDecorateFunctionNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMTruffleDerefHandleToManagedNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMTruffleHandleToManagedNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMTruffleIsHandleToManagedNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMTruffleManagedMallocNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMTruffleManagedToHandleNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMTruffleReleaseHandleNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMTruffleWriteManagedToGlobalNodeGen;
-import com.oracle.truffle.llvm.nodes.intrinsics.interop.LLVMVirtualMallocNodeGen;
 import com.oracle.truffle.llvm.nodes.intrinsics.interop.typed.LLVMArrayTypeIDNode;
 import com.oracle.truffle.llvm.nodes.intrinsics.interop.typed.LLVMPolyglotAsTyped;
 import com.oracle.truffle.llvm.nodes.intrinsics.interop.typed.LLVMPolyglotFromTyped;
@@ -126,6 +83,8 @@ import com.oracle.truffle.llvm.nodes.intrinsics.llvm.LLVMMemoryIntrinsicFactory.
 import com.oracle.truffle.llvm.nodes.intrinsics.llvm.LLVMMemoryIntrinsicFactory.LLVMFreeNodeGen;
 import com.oracle.truffle.llvm.nodes.intrinsics.llvm.LLVMMemoryIntrinsicFactory.LLVMMallocNodeGen;
 import com.oracle.truffle.llvm.nodes.intrinsics.llvm.LLVMMemoryIntrinsicFactory.LLVMReallocNodeGen;
+import com.oracle.truffle.llvm.nodes.intrinsics.llvm.arith.*;
+import com.oracle.truffle.llvm.nodes.intrinsics.multithreading.*;
 import com.oracle.truffle.llvm.nodes.intrinsics.llvm.arith.LLVMComplex80BitFloatDivNodeGen;
 import com.oracle.truffle.llvm.nodes.intrinsics.llvm.arith.LLVMComplex80BitFloatMulNodeGen;
 import com.oracle.truffle.llvm.nodes.intrinsics.llvm.arith.LLVMComplexDoubleDiv;
@@ -352,6 +311,7 @@ public class BasicIntrinsicsProvider implements LLVMIntrinsicProvider, ContextEx
         registerComplexNumberIntrinsics();
         registerCTypeIntrinsics();
         registerManagedAllocationIntrinsics();
+        registerPThreadIntrinsics();
     }
 
     protected static LLVMExpressionNode[] argumentsArray(List<LLVMExpressionNode> arguments, int startIndex, int arity) {
@@ -360,6 +320,47 @@ public class BasicIntrinsicsProvider implements LLVMIntrinsicProvider, ContextEx
             args[i] = arguments.get(i + startIndex);
         }
         return args;
+    }
+
+    private static void registerPThreadIntrinsics() {
+        // functions for bench marking
+        add("@sul_starttime", (args, context) -> LLVMPThreadIntrinsicsFactory.LLVMPThreadStartTimeNodeGen.create(null));
+        add("@sul_stoptime", (args, context) -> LLVMPThreadIntrinsicsFactory.LLVMPThreadStopTimeNodeGen.create(null));
+        add("@pthread_create", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadCreateNodeGen.create(args.get(1), args.get(2), args.get(3), args.get(4), null));
+        add("@pthread_equal", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadEqualNodeGen.create(args.get(1), args.get(2), null));
+        add("@pthread_exit", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadExitNodeGen.create(args.get(1), null));
+        add("@pthread_once", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadOnceNodeGen.create(args.get(1), args.get(2), null));
+        add("@pthread_join", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadJoinNodeGen.create(args.get(1), args.get(2), null));
+        add("@pthread_self", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadSelfNodeGen.create(null));
+        add("@pthread_my_test", (args, context) -> LLVMPThreadIntrinsicsFactory.LLVMPThreadMyTestNodeGen.create(args.get(1), null));
+        add("@pthread_attr_init", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadAttrInitNodeGen.create(args.get(1), null));
+        add("@pthread_attr_destroy", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadAttrDestroyNodeGen.create(args.get(1), null));
+        add("@pthread_attr_setdetachstate", (args, context) -> LLVMPThreadThreadIntrinsicsFactory.LLVMPThreadAttrSetdetachstateNodeGen.create(args.get(1), args.get(2), null));
+        // if you want to use cond vars, comment out the condvar and mutex intrinsics, only works when both native
+        add("@pthread_mutexattr_destroy", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrDestroyNodeGen.create(args.get(1), null));
+        add("@pthread_mutexattr_init", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrInitNodeGen.create(args.get(1), null));
+        add("@pthread_mutexattr_settype", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrSettypeNodeGen.create(args.get(1), args.get(2), null));
+        add("@pthread_mutex_destroy", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexDestroyNodeGen.create(args.get(1), null));
+        add("@pthread_mutex_init", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexInitNodeGen.create(args.get(1), args.get(2), null));
+        add("@pthread_mutex_lock", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexLockNodeGen.create(args.get(1), null));
+        add("@pthread_mutex_trylock", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexTrylockNodeGen.create(args.get(1), null));
+        add("@pthread_mutex_unlock", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexUnlockNodeGen.create(args.get(1), null));
+        add("@pthread_cond_destroy", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondDestroyNodeGen.create(args.get(1), null));
+        add("@pthread_cond_init", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondInitNodeGen.create(args.get(1), args.get(2), null));
+        add("@pthread_cond_broadcast", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondBroadcastNodeGen.create(args.get(1), null));
+        add("@pthread_cond_signal", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondSignalNodeGen.create(args.get(1), null));
+        add("@pthread_cond_wait", (args, context) -> LLVMPThreadCondIntrinsicsFactory.LLVMPThreadCondWaitNodeGen.create(args.get(1), args.get(2), null));
+        add("@pthread_rwlock_destroy", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockDestroyNodeGen.create(args.get(1), null));
+        add("@pthread_rwlock_init", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockInitNodeGen.create(args.get(1), args.get(2), null));
+        add("@pthread_rwlock_rdlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockRdlockNodeGen.create(args.get(1), null));
+        add("@pthread_rwlock_tryrdlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockTryrdlockNodeGen.create(args.get(1), null));
+        add("@pthread_rwlock_wrlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockWrlockNodeGen.create(args.get(1), null));
+        add("@pthread_rwlock_trywrlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockTrywrlockNodeGen.create(args.get(1), null));
+        add("@pthread_rwlock_unlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockUnlockNodeGen.create(args.get(1), null));
+        add("@pthread_key_create", (args, context) -> LLVMPThreadKeyIntrinsicsFactory.LLVMPThreadKeyCreateNodeGen.create(args.get(1), args.get(2), null));
+        add("@pthread_key_delete", (args, context) -> LLVMPThreadKeyIntrinsicsFactory.LLVMPThreadKeyDeleteNodeGen.create(args.get(1), null));
+        add("@pthread_getspecific", (args, context) -> LLVMPThreadKeyIntrinsicsFactory.LLVMPThreadGetspecificNodeGen.create(args.get(1), null));
+        add("@pthread_setspecific", (args, context) -> LLVMPThreadKeyIntrinsicsFactory.LLVMPThreadSetspecificNodeGen.create(args.get(1), args.get(2), null));
     }
 
     private static void registerSulongIntrinsics() {

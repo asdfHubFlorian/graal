@@ -30,12 +30,44 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <errno.h>
+#include <time.h>
 
 #include "unsupported.h"
-
-int pthread_attr_destroy(pthread_attr_t *attr) {
-  ERR_UNSUPPORTED(pthread_attr_destroy);
+// deleted create, join, once, exit, self
+// mutex_destroy, mutex_init, mutex_lock, mutex_trylock, mutex_unlock
+// mutexattr_destroy, mutexattr_init, mutexattr_settype
+// cond_destroy, cond_init, cond_broadcast, cond_signal, cond_wait
+// rwlock_destroy, rwlock_init, rwlock_rdlock, rwlock_tryrdlock, rwlock_wrlock, rwlock_trywrlock, rwlock_unlock
+// and some other stuff by making it a comment
+int __sulong_getEBUSY() {
+	return EBUSY;
 }
+int __sulong_getEINVAL() {
+	return EINVAL;
+}
+int __sulong_getEDEADLK() {
+	return EDEADLK;
+}
+int __sulong_getEPERM() {
+	return EPERM;
+}
+int __sulong_getPTHREAD_MUTEX_DEFAULT() {
+	return PTHREAD_MUTEX_DEFAULT;
+}
+int __sulong_getPTHREAD_MUTEX_ERRORCHECK() {
+	return PTHREAD_MUTEX_ERRORCHECK;
+}
+int __sulong_getPTHREAD_MUTEX_NORMAL() {
+	return PTHREAD_MUTEX_NORMAL;
+}
+int __sulong_getPTHREAD_MUTEX_RECURSIVE() {
+	return PTHREAD_MUTEX_RECURSIVE;
+}
+
+//int pthread_attr_destroy(pthread_attr_t *attr) {
+//  ERR_UNSUPPORTED(pthread_attr_destroy);
+//}
 int pthread_attr_getdetachstate(const pthread_attr_t *attr, int *detachstate) {
   ERR_UNSUPPORTED(pthread_attr_getdetachstate);
 }
@@ -60,12 +92,12 @@ int pthread_attr_getstackaddr(const pthread_attr_t *attr, void **stackaddr) {
 int pthread_attr_getstacksize(const pthread_attr_t *restrict attr, size_t *restrict stacksize) {
   ERR_UNSUPPORTED(pthread_attr_getstacksize);
 }
-int pthread_attr_init(pthread_attr_t *attr) {
-  ERR_UNSUPPORTED(pthread_attr_init);
-}
-int pthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate) {
-  ERR_UNSUPPORTED(pthread_attr_setdetachstate);
-}
+//int pthread_attr_init(pthread_attr_t *attr) {
+//  ERR_UNSUPPORTED(pthread_attr_init);
+//}
+//int pthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate) {
+//  ERR_UNSUPPORTED(pthread_attr_setdetachstate);
+//}
 int pthread_attr_setguardsize(pthread_attr_t *attr, size_t guardsize) {
   ERR_UNSUPPORTED(pthread_attr_setguardsize);
 }
@@ -92,92 +124,50 @@ int pthread_cancel(pthread_t thread) {
 }
 // void  pthread_cleanup_push(void*, void *);
 // void  pthread_cleanup_pop(int);
-int pthread_cond_broadcast(pthread_cond_t *cond) {
-  ERR_UNSUPPORTED(pthread_cond_broadcast);
-}
-int pthread_cond_destroy(pthread_cond_t *cond) {
-  ERR_UNSUPPORTED(pthread_cond_destroy);
-}
-int pthread_cond_init(pthread_cond_t *restrict cond, const pthread_condattr_t *restrict attr) {
-  ERR_UNSUPPORTED(pthread_cond_init);
-}
-int pthread_cond_signal(pthread_cond_t *cond) {
-  ERR_UNSUPPORTED(pthread_cond_signal);
-}
-int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime) {
-  ERR_UNSUPPORTED(pthread_cond_timedwait);
-}
-int pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex) {
-  ERR_UNSUPPORTED(pthread_cond_wait);
-}
-int pthread_condattr_destroy(pthread_condattr_t *attr) {
-  ERR_UNSUPPORTED(pthread_condattr_destroy);
-}
-int pthread_condattr_getpshared(const pthread_condattr_t *restrict attr, int *restrict pshared) {
-  ERR_UNSUPPORTED(pthread_condattr_getpshared);
-}
-int pthread_condattr_init(pthread_condattr_t *attr) {
-  ERR_UNSUPPORTED(pthread_condattr_init);
-}
-int pthread_condattr_setpshared(pthread_condattr_t *attr, int pshared) {
-  ERR_UNSUPPORTED(pthread_condattr_setpshared);
-}
-int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void *), void *restrict arg) {
-  ERR_UNSUPPORTED(pthread_create);
-}
+//int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime) {
+//  ERR_UNSUPPORTED(pthread_cond_timedwait);
+//}
+//int pthread_condattr_destroy(pthread_condattr_t *attr) {
+//  ERR_UNSUPPORTED(pthread_condattr_destroy);
+//}
+//int pthread_condattr_getpshared(const pthread_condattr_t *restrict attr, int *restrict pshared) {
+//  ERR_UNSUPPORTED(pthread_condattr_getpshared);
+//}
+//int pthread_condattr_init(pthread_condattr_t *attr) {
+//  ERR_UNSUPPORTED(pthread_condattr_init);
+//}
+//int pthread_condattr_setpshared(pthread_condattr_t *attr, int pshared) {
+//  ERR_UNSUPPORTED(pthread_condattr_setpshared);
+//}
 int pthread_detach(pthread_t thread) {
   ERR_UNSUPPORTED(pthread_detach);
 }
 // this function might be defined as a macro
-#ifndef pthread_equal
-int pthread_equal(pthread_t t1, pthread_t t2) {
-  ERR_UNSUPPORTED(pthread_equal);
-}
-#endif
-void pthread_exit(void *value_ptr) {
-  ERR_UNSUPPORTED(pthread_exit);
-}
+//#ifndef pthread_equal
+//int pthread_equal(pthread_t t1, pthread_t t2) {
+//  ERR_UNSUPPORTED(pthread_equal);
+//}
+//#endif
 int pthread_getconcurrency(void) {
   ERR_UNSUPPORTED(pthread_getconcurrency);
 }
 int pthread_getschedparam(pthread_t thread, int *restrict policy, struct sched_param *restrict param) {
   ERR_UNSUPPORTED(pthread_getschedparam);
 }
-void *pthread_getspecific(pthread_key_t key) {
-  ERR_UNSUPPORTED(pthread_getspecific);
-}
-int pthread_join(pthread_t thread, void **value_ptr) {
-  ERR_UNSUPPORTED(pthread_join);
-}
-int pthread_key_create(pthread_key_t *key, void (*destructor)(void *)) {
-  ERR_UNSUPPORTED(pthread_key_create);
-}
-int pthread_key_delete(pthread_key_t key) {
-  ERR_UNSUPPORTED(pthread_key_delete);
-}
-int pthread_mutex_destroy(pthread_mutex_t *mutex) {
-  ERR_UNSUPPORTED(pthread_mutex_destroy);
-}
+//void *pthread_getspecific(pthread_key_t key) {
+//  ERR_UNSUPPORTED(pthread_getspecific);
+//}
+//int pthread_key_create(pthread_key_t *key, void (*destructor)(void *)) {
+//  ERR_UNSUPPORTED(pthread_key_create);
+//}
+//int pthread_key_delete(pthread_key_t key) {
+//  ERR_UNSUPPORTED(pthread_key_delete);
+//}
 int pthread_mutex_getprioceiling(const pthread_mutex_t *restrict mutex, int *restrict prioceiling) {
   ERR_UNSUPPORTED(pthread_mutex_getprioceiling);
 }
-int pthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr) {
-  ERR_UNSUPPORTED(pthread_mutex_init);
-}
-int pthread_mutex_lock(pthread_mutex_t *mutex) {
-  ERR_UNSUPPORTED(pthread_mutex_lock);
-}
 int pthread_mutex_setprioceiling(pthread_mutex_t *restrict mutex, int prioceiling, int *restrict old_ceiling) {
   ERR_UNSUPPORTED(pthread_mutex_setprioceiling);
-}
-int pthread_mutex_trylock(pthread_mutex_t *mutex) {
-  ERR_UNSUPPORTED(pthread_mutex_trylock);
-}
-int pthread_mutex_unlock(pthread_mutex_t *mutex) {
-  ERR_UNSUPPORTED(pthread_mutex_unlock);
-}
-int pthread_mutexattr_destroy(pthread_mutexattr_t *attr) {
-  ERR_UNSUPPORTED(pthread_mutexattr_destroy);
 }
 int pthread_mutexattr_getprioceiling(const pthread_mutexattr_t *restrict attr, int *restrict prioceiling) {
   ERR_UNSUPPORTED(pthread_mutexattr_getprioceiling);
@@ -191,9 +181,6 @@ int pthread_mutexattr_getpshared(const pthread_mutexattr_t *restrict attr, int *
 int pthread_mutexattr_gettype(const pthread_mutexattr_t *restrict attr, int *restrict type) {
   ERR_UNSUPPORTED(pthread_mutexattr_gettype);
 }
-int pthread_mutexattr_init(pthread_mutexattr_t *attr) {
-  ERR_UNSUPPORTED(pthread_mutexattr_init);
-}
 int pthread_mutexattr_setprioceiling(pthread_mutexattr_t *attr, int protocol) {
   ERR_UNSUPPORTED(pthread_mutexattr_setprioceiling);
 }
@@ -203,33 +190,9 @@ int pthread_mutexattr_setprotocol(pthread_mutexattr_t *attr, int protocol) {
 int pthread_mutexattr_setpshared(pthread_mutexattr_t *attr, int pshared) {
   ERR_UNSUPPORTED(pthread_mutexattr_setpshared);
 }
-int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type) {
-  ERR_UNSUPPORTED(pthread_mutexattr_settype);
-}
-int pthread_once(pthread_once_t *once_control, void (*init_routine)(void)) {
-  ERR_UNSUPPORTED(pthread_once);
-}
-int pthread_rwlock_destroy(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_destroy);
-}
-int pthread_rwlock_init(pthread_rwlock_t *restrict rwlock, const pthread_rwlockattr_t *restrict attr) {
-  ERR_UNSUPPORTED(pthread_rwlock_init);
-}
-int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_rdlock);
-}
-int pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_tryrdlock);
-}
-int pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_trywrlock);
-}
-int pthread_rwlock_unlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_unlock);
-}
-int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock) {
-  ERR_UNSUPPORTED(pthread_rwlock_wrlockk);
-}
+//int pthread_once(pthread_once_t *once_control, void (*init_routine)(void)) {
+//  ERR_UNSUPPORTED(pthread_once);
+//}
 int pthread_rwlockattr_destroy(pthread_rwlockattr_t *attr) {
   ERR_UNSUPPORTED(pthread_rwlockattr_destroy);
 }
@@ -241,9 +204,6 @@ int pthread_rwlockattr_init(pthread_rwlockattr_t *attr) {
 }
 int pthread_rwlockattr_setpshared(pthread_rwlockattr_t *attr, int pshared) {
   ERR_UNSUPPORTED(pthread_rwlockattr_setpshared);
-}
-pthread_t pthread_self(void) {
-  ERR_UNSUPPORTED(pthread_self);
 }
 int pthread_setcancelstate(int state, int *oldstate) {
   ERR_UNSUPPORTED(pthread_setcancelstate);
@@ -257,9 +217,9 @@ int pthread_setconcurrency(int new_level) {
 int pthread_setschedparam(pthread_t thread, int policy, const struct sched_param *param) {
   ERR_UNSUPPORTED(pthread_setschedparam);
 }
-int pthread_setspecific(pthread_key_t key, const void *value) {
-  ERR_UNSUPPORTED(pthread_setspecific);
-}
+//int pthread_setspecific(pthread_key_t key, const void *value) {
+//  ERR_UNSUPPORTED(pthread_setspecific);
+//}
 void pthread_testcancel(void) {
   // do nothing - this is fine as long as no other pthread methods are supported
 }

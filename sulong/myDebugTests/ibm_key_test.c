@@ -1,0 +1,99 @@
+// code from https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.3.0/com.ibm.zos.v2r3.bpxbd00/ptgetsp.htm
+/* CELEBP31 */
+#ifndef _OPEN_THREADS
+#define _OPEN_THREADS
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <pthread.h>
+
+#define threads 3
+#define BUFFSZ  48
+pthread_key_t   key;
+
+void            *threadfunc(void *parm)
+{
+ int        status;
+ void      *value;
+ int        threadnum;
+ int       *tnum;
+ void      *getvalue;
+ char       Buffer[BUFFSZ];
+
+ tnum = parm;
+ threadnum = *tnum;
+
+ printf("Thread %d executing\n", threadnum);
+
+ if (!(value = malloc(sizeof(Buffer))))
+     printf("Thread %d could not allocate storage, errno = %d\n",
+                                                  threadnum, errno);
+ status = pthread_setspecific(key, (void *) value);
+ if ( status <  0) {
+    printf("pthread_setspecific failed, thread %d, errno %d",
+                                                  threadnum, errno);
+    pthread_exit((void *)12);
+ }
+ printf("Thread %d setspecific value: %d\n", threadnum, value);
+
+ getvalue = pthread_getspecific(key);
+ printf("Thread %d getspecific value: %d\n", threadnum, getvalue);
+ if (getvalue != value)
+ {
+   printf("getvalue not valid, getvalue=%d", (int)getvalue);
+   pthread_exit((void *)68);
+ }
+
+ pthread_exit((void *)0);
+}
+
+void  destr_fn(void *parm)
+{
+
+   printf("Destructor function invoked\n");
+   free(parm);
+}
+
+main() {
+ int          getvalue;
+ int          status;
+ int          i;
+ int          threadparm[threads];
+ pthread_t    threadid[threads];
+ int          thread_stat[threads];
+
+
+ if ((status = pthread_key_create(&key, destr_fn )) < 0) {
+    printf("pthread_key_create failed, errno=%d", errno);
+    exit(1);
+ }
+
+ /* create 3 threads, pass each its number */
+ for (i=0; i<threads; i++) {
+    threadparm[i] = i+1;
+    status = pthread_create( &threadid[i],
+                             NULL,
+                             threadfunc,
+                             (void *)&threadparm[i]);
+    if ( status <  0) {
+       printf("pthread_create failed, errno=%d", errno);
+       exit(2);
+    }
+  }
+
+ for ( i=0; i<threads; i++) {
+    status = pthread_join( threadid[i], (void *)&thread_stat[i]);
+    if ( status <  0) {
+       printf("pthread_join failed, thread %d, errno=%d\n", i+1, errno);
+    }
+
+    if (thread_stat[i] != 0)   {
+        printf("bad thread status, thread %d, status=%d\n", i+1,
+                                                   thread_stat[i]);
+      }
+  }
+
+ exit(0);
+}
