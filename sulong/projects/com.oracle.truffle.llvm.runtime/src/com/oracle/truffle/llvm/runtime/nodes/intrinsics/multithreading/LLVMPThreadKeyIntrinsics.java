@@ -81,7 +81,6 @@ public class LLVMPThreadKeyIntrinsics {
 
     @NodeChild(type = LLVMExpressionNode.class, value = "key")
     public abstract static class LLVMPThreadGetspecific extends LLVMBuiltin {
-        // no relevant error code handling here
         @Specialization
         protected LLVMPointer doIntrinsic(VirtualFrame frame, int key, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
             if (ctx.keyStorage.containsKey(key) && ctx.keyStorage.get(key).containsKey(Thread.currentThread().getId())) {
