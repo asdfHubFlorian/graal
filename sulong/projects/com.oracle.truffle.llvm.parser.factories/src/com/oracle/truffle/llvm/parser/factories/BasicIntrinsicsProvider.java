@@ -137,6 +137,8 @@ import com.oracle.truffle.llvm.runtime.nodes.intrinsics.llvm.LLVMMemoryIntrinsic
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.llvm.arith.LLVMComplex80BitFloatDivNodeGen;
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.llvm.arith.LLVMComplex80BitFloatMulNodeGen;
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.multithreading.LLVMPThreadKeyIntrinsicsFactory;
+import com.oracle.truffle.llvm.runtime.nodes.intrinsics.multithreading.LLVMPThreadMutexIntrinsicsFactory;
+import com.oracle.truffle.llvm.runtime.nodes.intrinsics.multithreading.LLVMPThreadRWLockIntrinsicsFactory;
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.multithreading.LLVMPThreadThreadIntrinsicsFactory;
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.rust.LLVMPanicNodeGen;
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.rust.LLVMStartFactory.LLVMLangStartInternalNodeGen;
@@ -370,6 +372,23 @@ public class BasicIntrinsicsProvider implements LLVMIntrinsicProvider {
         add("pthread_key_delete", (args, context) -> LLVMPThreadKeyIntrinsicsFactory.LLVMPThreadKeyDeleteNodeGen.create(args.get(1)));
         add("pthread_getspecific", (args, context) -> LLVMPThreadKeyIntrinsicsFactory.LLVMPThreadGetspecificNodeGen.create(args.get(1)));
         add("pthread_setspecific", (args, context) -> LLVMPThreadKeyIntrinsicsFactory.LLVMPThreadSetspecificNodeGen.create(args.get(1), args.get(2)));
+
+        add("pthread_mutexattr_destroy", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrDestroyNodeGen.create(args.get(1)));
+        add("pthread_mutexattr_init", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrInitNodeGen.create(args.get(1)));
+        add("pthread_mutexattr_settype", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexattrSettypeNodeGen.create(args.get(1), args.get(2)));
+        add("pthread_mutex_destroy", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexDestroyNodeGen.create(args.get(1)));
+        add("pthread_mutex_init", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexInitNodeGen.create(args.get(1), args.get(2)));
+        add("pthread_mutex_lock", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexLockNodeGen.create(args.get(1)));
+        add("pthread_mutex_trylock", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexTrylockNodeGen.create(args.get(1)));
+        add("pthread_mutex_unlock", (args, context) -> LLVMPThreadMutexIntrinsicsFactory.LLVMPThreadMutexUnlockNodeGen.create(args.get(1)));
+
+        add("pthread_rwlock_destroy", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockDestroyNodeGen.create(args.get(1)));
+        add("pthread_rwlock_init", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockInitNodeGen.create(args.get(1), args.get(2)));
+        add("pthread_rwlock_rdlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockRdlockNodeGen.create(args.get(1)));
+        add("pthread_rwlock_tryrdlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockTryrdlockNodeGen.create(args.get(1)));
+        add("pthread_rwlock_wrlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockWrlockNodeGen.create(args.get(1)));
+        add("pthread_rwlock_trywrlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockTrywrlockNodeGen.create(args.get(1)));
+        add("pthread_rwlock_unlock", (args, context) -> LLVMPThreadRWLockIntrinsicsFactory.LLVMPThreadRWLockUnlockNodeGen.create(args.get(1)));
     }
 
     private static void registerSulongIntrinsics() {

@@ -99,6 +99,10 @@ public final class LLVMContext {
     // list with all created threads for the case that a thread id doest not stay runtime unique
     public final List<Thread> createdThreads;
 
+    public final ConcurrentMap<LLVMPointer, Object> condStorage;
+    public final ConcurrentMap<LLVMPointer, Object> mutexStorage;
+    public final ConcurrentMap<LLVMPointer, Object> rwlockStorage;
+
     public final List<LLVMPointer> onceStorage;
 
     public int curKeyVal;
@@ -240,6 +244,9 @@ public final class LLVMContext {
         this.retValStorage = new ConcurrentHashMap<>();
         this.threadStorage = new ConcurrentHashMap<>();
         this.createdThreads = new ArrayList<>();
+        this.condStorage = new ConcurrentHashMap<>();
+        this.mutexStorage = new ConcurrentHashMap<>();
+        this.rwlockStorage = new ConcurrentHashMap<>();
         this.onceStorage = new ArrayList<>();
         this.curKeyVal = 0;
         this.keyLockObj = new Object();
