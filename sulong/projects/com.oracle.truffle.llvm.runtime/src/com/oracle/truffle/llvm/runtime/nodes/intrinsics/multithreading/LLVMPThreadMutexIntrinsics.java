@@ -44,7 +44,6 @@ import com.oracle.truffle.llvm.runtime.nodes.intrinsics.llvm.LLVMBuiltin;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class LLVMPThreadMutexIntrinsics {
     public static class Mutex {
@@ -54,99 +53,104 @@ public class LLVMPThreadMutexIntrinsics {
             RECURSIVE
         }
 
-        protected ReentrantLock internLock;
+        private int lockCount;
+        private Thread owner;
         private final MutexType type;
         private final ConcurrentLinkedQueue<Thread> waitingThreads;
 
         public Mutex(MutexType type) {
-            this.internLock = new ReentrantLock();
+            this.type = (type != null ? type : MutexType.DEFAULT_NORMAL);
             this.waitingThreads = new ConcurrentLinkedQueue<>();
-            if (type != null) {
-                this.type = type;
-            } else {
-                this.type = MutexType.DEFAULT_NORMAL;
-            }
         }
 
         public MutexType getType() {
             return this.type;
         }
 
-        // TODO: boundary to all collection stuff
+        public boolean hasLock(Thread thread) {
+            return this.owner == thread;
+        }
+
         public boolean lock() {
-            if (this.internLock.isHeldByCurrentThread()) {
-                if (this.type == MutexType.DEFAULT_NORMAL) {
-                    // deadlock, only until another thread unlocks it
-                    // lock and unlock by different threads leads to undefined behaviour in spec
-                    // in the native implementation
-                    // it is possible to lock and unlock default mutexes in different threads tho
-                    while (true) {
-                        try {
-                            if (!waitingThreads.contains(Thread.currentThread())) {
-                                waitingThreads.add(Thread.currentThread());
-                            }
-                            Thread.sleep(Long.MAX_VALUE);
-                        } catch (InterruptedException e) {
-                            break;
-                        }
-                    }
+            synchronized (this) {
+                // for all types: if not locked currently, success
+                if (this.lockCount == 0) {
+                    this.lockCount = 1;
+                    this.owner = Thread.currentThread();
+                    return true;
                 }
+                // at this point we know the mutex is currently locked
+
+                // for errorcheck type: if locked currently, return false
                 if (this.type == MutexType.ERRORCHECK) {
                     return false;
                 }
-            }
-            // default_normal mutexes should be able to be unlocked by another thread
-            // javas reentrant lock class does not allow this though (illegal monitor state exception)
-            // so when unlock from not owning thread comes to a default_normal mutex
-            // the intern lock gets replaced by a new unlocked one, and the waiting threads get interrupted
-            // so they will call "lock" on the new intern lock
-
-            // this is the behaviour of the native implementation
-
-            if (this.type == MutexType.DEFAULT_NORMAL) {
-                while (true) {
-                    try {
-                        if (!waitingThreads.contains(Thread.currentThread())) {
-                            waitingThreads.add(Thread.currentThread());
-                        }
-                        internLock.lockInterruptibly();
-                    } catch (InterruptedException e) {
-                        continue;
-                    }
-                    waitingThreads.remove(Thread.currentThread());
+                // for recursive type: if locked currently by this thread, increase lock count, success
+                if (this.type == MutexType.RECURSIVE && this.owner == Thread.currentThread()) {
+                    this.lockCount++;
                     return true;
                 }
+                // for default_normal type: we will block and wait for our turn
+                this.waitingThreads.add(Thread.currentThread());
             }
-            internLock.lock();
+            UtilThread.waitForInterrupt(Thread.currentThread());
+            // it's our turn to lock the mutex now
+            // lockCount is still at 1
+            // owner already set by unlock
             return true;
         }
 
         public boolean tryLock() {
-            if (this.type == MutexType.RECURSIVE) {
-                return internLock.tryLock();
+            synchronized (this) {
+                if (this.type == MutexType.DEFAULT_NORMAL || this.type == MutexType.DEFAULT_NORMAL.ERRORCHECK) {
+                    if (lockCount != 0) {
+                        return false;
+                    }
+                    this.lockCount = 1;
+                    this.owner = Thread.currentThread();
+                    return true;
+                }
+                if (this.type == MutexType.RECURSIVE) {
+                    if (this.owner != Thread.currentThread()) {
+                        return false;
+                    }
+                    this.lockCount++;
+                    return true;
+                }
             }
-            // if it's not a recursive mutex and currently owned trylock shall return false
-            if (internLock.isHeldByCurrentThread()) {
-                return false;
-            }
-            // if it's not currently owned we can just call trylock
-            return internLock.tryLock();
+            // not reachable
+            return false;
         }
 
         public boolean unlock() {
-            if (!internLock.isHeldByCurrentThread()) {
-                // in spec undefined, my native implementation unlocks and returns 0 when unlocking not-locked / not-owned default_normal mutexes
-                if (this.type == MutexType.DEFAULT_NORMAL) {
-                    internLock = new ReentrantLock();
-                    for (Thread t : this.waitingThreads) {
-                        t.interrupt();
+            synchronized (this) {
+                if (this.type == MutexType.ERRORCHECK || this.type == MutexType.RECURSIVE) {
+                    // errorcheck and recursive mutex only allow lock / unlock from the same thread
+                    if (this.owner != Thread.currentThread()) {
+                        return false;
                     }
+                    if (this.type == MutexType.RECURSIVE) {
+                        // keep lock, but decrease count by one
+                        if (this.lockCount > 1) {
+                            lockCount--;
+                            return true;
+                        }
+                    }
+                }
+                // at this point we know we can unlock
+                if (!this.waitingThreads.isEmpty()) {
+                    // already leave lockCount at 1
+                    // and set new owner here in this synchronized block
+                    // to keep consistent states outside of synchronized blocks
+                    Thread newOwner = this.waitingThreads.poll();
+                    this.owner = newOwner;
+                    newOwner.interrupt();
                     return true;
                 }
-                return false;
+                this.lockCount = 0;
+                this.owner = null;
+                return true;
             }
-            internLock.unlock();
-            return true;
         }
     }
 

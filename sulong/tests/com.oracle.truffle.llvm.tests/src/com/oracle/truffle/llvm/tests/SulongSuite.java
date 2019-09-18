@@ -57,7 +57,7 @@ public final class SulongSuite extends BaseSuiteHarness {
     public static Collection<Object[]> data() {
         Path suitesPath = new File(TestOptions.TEST_SUITE_PATH).toPath();
         try (Stream<Path> files = Files.walk(suitesPath)) {
-            Stream<Path> destDirs = files.filter(SulongSuite::isReference).filter(path -> path.toString().contains("pthread") && (path.toString().contains("mutex") || path.toString().contains("rwlock"))).map(Path::getParent);
+            Stream<Path> destDirs = files.filter(SulongSuite::isReference).filter(path -> path.toString().contains("pthread")).map(Path::getParent);
             return destDirs.map(testPath -> new Object[]{testPath, suitesPath.relativize(testPath).toString()}).collect(Collectors.toList());
         } catch (IOException e) {
             throw new AssertionError("Test cases not found", e);
