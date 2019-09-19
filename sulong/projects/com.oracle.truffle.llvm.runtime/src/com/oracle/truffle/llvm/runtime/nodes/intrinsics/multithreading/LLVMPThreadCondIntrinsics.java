@@ -44,10 +44,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class LLVMPThreadCondIntrinsics {
     public static class Cond {
+        private boolean noLostWakeUp;
         private Mutex curMutex;
         private final ConcurrentLinkedQueue<Thread> waitingThreads;
 
         public Cond() {
+            noLostWakeUp = false;
             // binding a mutex occurs in wait call
             curMutex = null;
             waitingThreads = new ConcurrentLinkedQueue<>();
@@ -56,7 +58,17 @@ public class LLVMPThreadCondIntrinsics {
         public void broadcast() {
             synchronized (this) {
                 while (!this.waitingThreads.isEmpty()) {
-                    this.waitingThreads.poll().interrupt();
+                    // for "atomic" unlock-and-wait:
+                    // "next" could be between being added to the queue and sleeping
+                    Thread next = this.waitingThreads.poll();
+                    // wait for thread to sleep to be able to catch interrupts
+                    while (next.getState() != Thread.State.TIMED_WAITING) {
+                        try {
+                            Thread.sleep(0, 5);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    next.interrupt();
                 }
             }
         }
@@ -64,7 +76,17 @@ public class LLVMPThreadCondIntrinsics {
         public void signal() {
             synchronized (this) {
                 if (!this.waitingThreads.isEmpty()) {
-                    this.waitingThreads.poll().interrupt();
+                    // for "atomic" unlock-and-wait:
+                    // "next" could be between being added to the queue and sleeping
+                    Thread next = this.waitingThreads.poll();
+                    // wait for thread to sleep to be able to catch interrupts
+                    while (next.getState() != Thread.State.TIMED_WAITING) {
+                        try {
+                            Thread.sleep(0, 5);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    next.interrupt();
                 }
             }
         }
@@ -77,8 +99,10 @@ public class LLVMPThreadCondIntrinsics {
                 this.curMutex = mutex;
                 this.curMutex.unlock();
                 this.waitingThreads.add(Thread.currentThread());
+                // at this point the current thread already blocks and waits, even before sleeping
             }
-            UtilThread.waitForInterrupt(Thread.currentThread());
+            // next call to broadcast or signal possible from here on
+            UtilThread.sleepUntilInterrupt();
             this.curMutex.lock();
             return true;
         }

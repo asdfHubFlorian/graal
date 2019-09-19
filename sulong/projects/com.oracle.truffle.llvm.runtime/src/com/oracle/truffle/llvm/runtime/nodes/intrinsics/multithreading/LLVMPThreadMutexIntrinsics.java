@@ -93,7 +93,7 @@ public class LLVMPThreadMutexIntrinsics {
                 // for default_normal type: we will block and wait for our turn
                 this.waitingThreads.add(Thread.currentThread());
             }
-            UtilThread.waitForInterrupt(Thread.currentThread());
+            UtilThread.sleepUntilInterrupt();
             // it's our turn to lock the mutex now
             // lockCount is still at 1
             // owner already set by unlock
@@ -102,7 +102,7 @@ public class LLVMPThreadMutexIntrinsics {
 
         public boolean tryLock() {
             synchronized (this) {
-                if (this.type == MutexType.DEFAULT_NORMAL || this.type == MutexType.DEFAULT_NORMAL.ERRORCHECK) {
+                if (this.type == MutexType.DEFAULT_NORMAL || this.type == MutexType.ERRORCHECK) {
                     if (lockCount != 0) {
                         return false;
                     }
@@ -142,11 +142,19 @@ public class LLVMPThreadMutexIntrinsics {
                     // already leave lockCount at 1
                     // and set new owner here in this synchronized block
                     // to keep consistent states outside of synchronized blocks
-                    Thread newOwner = this.waitingThreads.poll();
-                    this.owner = newOwner;
-                    newOwner.interrupt();
+                    Thread next = this.waitingThreads.poll();
+                    // wait for thread to sleep to be able to catch interrupts
+                    while (next.getState() != Thread.State.TIMED_WAITING) {
+                        try {
+                            Thread.sleep(0, 5);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    next.interrupt();
+                    this.owner = next;
                     return true;
                 }
+                // if no one currently waiting just reset to default unlocked state
                 this.lockCount = 0;
                 this.owner = null;
                 return true;

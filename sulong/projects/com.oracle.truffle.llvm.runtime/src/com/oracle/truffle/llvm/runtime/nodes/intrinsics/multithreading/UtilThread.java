@@ -30,16 +30,13 @@
 package com.oracle.truffle.llvm.runtime.nodes.intrinsics.multithreading;
 
 public class UtilThread {
-    // an interrupt could be lost for a moment after some billion years
-    // no practical relevance, and code is probably faster than other options to freeze
-    // which would need additional locks
-    public static void waitForInterrupt(Thread t) {
-        try {
-            while (true) {
+    public static void sleepUntilInterrupt() {
+        while (true) {
+            try {
                 Thread.sleep(Long.MAX_VALUE);
+            } catch (InterruptedException e) {
+                return;
             }
-        } catch (InterruptedException e) {
-            return;
         }
     }
 }
