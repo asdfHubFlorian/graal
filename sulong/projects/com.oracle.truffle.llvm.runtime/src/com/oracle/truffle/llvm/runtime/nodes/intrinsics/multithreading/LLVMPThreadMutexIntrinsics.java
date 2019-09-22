@@ -145,10 +145,9 @@ public class LLVMPThreadMutexIntrinsics {
                     Thread next = this.waitingThreads.poll();
                     // wait for thread to sleep to be able to catch interrupts
                     while (next.getState() != Thread.State.TIMED_WAITING) {
-                        try {
-                            Thread.sleep(0, 5);
-                        } catch (InterruptedException e) {
-                        }
+                        // just keep spinning
+                        // if a thread is in wait-queue, it will only take a moment for it to also sleep
+                        // and to listen for interrupts
                     }
                     next.interrupt();
                     this.owner = next;
