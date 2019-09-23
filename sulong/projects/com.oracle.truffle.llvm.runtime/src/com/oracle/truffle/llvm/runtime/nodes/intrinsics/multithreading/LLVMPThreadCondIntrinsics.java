@@ -36,6 +36,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
+import com.oracle.truffle.llvm.runtime.nodes.asm.syscall.LLVMAMD64Error;
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.llvm.LLVMBuiltin;
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.multithreading.LLVMPThreadMutexIntrinsics.Mutex;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
@@ -170,7 +171,7 @@ public class LLVMPThreadCondIntrinsics {
                 mutexObj = new LLVMPThreadMutexIntrinsics.Mutex(LLVMPThreadMutexIntrinsics.Mutex.MutexType.DEFAULT_NORMAL);
                 UtilAccessCollectionWithBoundary.put(ctx.mutexStorage, mutex, mutexObj);
             }
-            return condObj.cWait(mutexObj) ? 0 : ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.EPERM);
+            return condObj.cWait(mutexObj) ? 0 : LLVMAMD64Error.EPERM;
         }
     }
 }

@@ -36,6 +36,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
+import com.oracle.truffle.llvm.runtime.nodes.asm.syscall.LLVMAMD64Error;
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.llvm.LLVMBuiltin;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
 
@@ -146,7 +147,7 @@ public class LLVMPThreadRWLockIntrinsics {
                 rwlockObj = new RWLock();
                 UtilAccessCollectionWithBoundary.put(ctx.rwlockStorage, rwlock, rwlockObj);
             }
-            return rwlockObj.tryReadLock() ? 0 : ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.EBUSY);
+            return rwlockObj.tryReadLock() ? 0 : LLVMAMD64Error.EBUSY;
         }
     }
 
@@ -162,7 +163,7 @@ public class LLVMPThreadRWLockIntrinsics {
                 rwlockObj = new RWLock();
                 UtilAccessCollectionWithBoundary.put(ctx.rwlockStorage, rwlock, rwlockObj);
             }
-            return rwlockObj.writeLock() ? 0 : ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.EDEADLK);
+            return rwlockObj.writeLock() ? 0 : LLVMAMD64Error.EDEADLK;
         }
     }
 
@@ -179,7 +180,7 @@ public class LLVMPThreadRWLockIntrinsics {
                 rwlockObj = new RWLock();
                 UtilAccessCollectionWithBoundary.put(ctx.rwlockStorage, rwlock, rwlockObj);
             }
-            return rwlockObj.tryWriteLock() ? 0 : ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.EBUSY);
+            return rwlockObj.tryWriteLock() ? 0 : LLVMAMD64Error.EBUSY;
         }
     }
 

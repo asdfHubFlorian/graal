@@ -40,6 +40,7 @@ import com.oracle.truffle.llvm.runtime.interop.access.LLVMInteropType;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMExpressionNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMLoadNode;
 import com.oracle.truffle.llvm.runtime.nodes.api.LLVMStoreNode;
+import com.oracle.truffle.llvm.runtime.nodes.asm.syscall.LLVMAMD64Error;
 import com.oracle.truffle.llvm.runtime.nodes.intrinsics.llvm.LLVMBuiltin;
 import com.oracle.truffle.llvm.runtime.pointer.LLVMPointer;
 
@@ -195,8 +196,8 @@ public class LLVMPThreadMutexIntrinsics {
                 store = ctx.getLanguage().getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I32);
             }
             // check if valid type
-            if (type != ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.PTHREAD_MUTEX_DEFAULT) && type != ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.PTHREAD_MUTEX_ERRORCHECK) && type != ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.PTHREAD_MUTEX_NORMAL) && type != ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.PTHREAD_MUTEX_RECURSIVE)) {
-                return ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.EINVAL);
+            if (type != PThreadConstants.PTHREAD_MUTEX_DEFAULT && type != PThreadConstants.PTHREAD_MUTEX_ERRORCHECK && type != PThreadConstants.PTHREAD_MUTEX_NORMAL && type != PThreadConstants.PTHREAD_MUTEX_RECURSIVE) {
+                return LLVMAMD64Error.EINVAL;
             }
             // store type in attr variable
             store.executeWithTarget(attr, type);
@@ -233,9 +234,9 @@ public class LLVMPThreadMutexIntrinsics {
                 attrValue = (int) read.executeWithTarget(attr);
             }
             Mutex.MutexType mutexType = Mutex.MutexType.DEFAULT_NORMAL;
-            if (attrValue == ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.PTHREAD_MUTEX_ERRORCHECK)) {
+            if (attrValue == PThreadConstants.PTHREAD_MUTEX_ERRORCHECK) {
                 mutexType = Mutex.MutexType.ERRORCHECK;
-            } else if (attrValue == ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.PTHREAD_MUTEX_RECURSIVE)) {
+            } else if (attrValue == PThreadConstants.PTHREAD_MUTEX_RECURSIVE) {
                 mutexType = Mutex.MutexType.RECURSIVE;
             }
             UtilAccessCollectionWithBoundary.put(ctx.mutexStorage, mutex, new Mutex(mutexType));
@@ -260,7 +261,7 @@ public class LLVMPThreadMutexIntrinsics {
                 }
                 // lock only returns false when mutex is errorcheck type and current thread already holds it
             }
-            return mutexObj.lock() ? 0 : ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.EDEADLK);
+            return mutexObj.lock() ? 0 : LLVMAMD64Error.EDEADLK;
         }
     }
 
@@ -280,7 +281,7 @@ public class LLVMPThreadMutexIntrinsics {
                     UtilAccessCollectionWithBoundary.put(ctx.mutexStorage, mutex, mutexObj);
                 }
             }
-            return mutexObj.tryLock() ? 0 : ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.EBUSY);
+            return mutexObj.tryLock() ? 0 : LLVMAMD64Error.EBUSY;
         }
     }
 
@@ -293,7 +294,7 @@ public class LLVMPThreadMutexIntrinsics {
             if (mutexObj == null) {
                 return 0;
             }
-            return mutexObj.unlock() ? 0 : ctx.pthreadConstants.getConstant(UtilCConstants.CConstant.EPERM);
+            return mutexObj.unlock() ? 0 : LLVMAMD64Error.EPERM;
         }
     }
 }

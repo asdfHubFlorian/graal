@@ -48,7 +48,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.llvm.runtime.nodes.intrinsics.multithreading.PThreadConstants;
 import org.graalvm.collections.EconomicMap;
 
 import com.oracle.truffle.api.CallTarget;
@@ -97,6 +96,11 @@ public final class LLVMContext {
     private final ConcurrentMap<Long, Thread> threadStorage;
 
     private final ArrayList<LLVMPointer> onceStorage;
+
+    public final ConcurrentMap<LLVMPointer, Object> condStorage;
+    public final ConcurrentMap<LLVMPointer, Object> mutexStorage;
+    public final ConcurrentMap<LLVMPointer, Object> rwlockStorage;
+
 
     public int curKeyVal;
     public final Object keyLockObj;
@@ -234,6 +238,9 @@ public final class LLVMContext {
         this.threadReturnValueStorage = new ConcurrentHashMap<>();
         this.threadStorage = new ConcurrentHashMap<>();
         this.onceStorage = new ArrayList<>();
+        this.condStorage = new ConcurrentHashMap<>();
+        this.mutexStorage = new ConcurrentHashMap<>();
+        this.rwlockStorage = new ConcurrentHashMap<>();
         this.curKeyVal = 0;
         this.keyLockObj = new Object();
         this.keyStorage = new ConcurrentHashMap<>();
