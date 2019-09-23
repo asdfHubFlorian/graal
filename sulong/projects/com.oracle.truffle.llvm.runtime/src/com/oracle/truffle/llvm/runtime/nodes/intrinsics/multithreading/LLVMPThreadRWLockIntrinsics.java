@@ -101,8 +101,8 @@ public class LLVMPThreadRWLockIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "rwlock")
     public abstract static class LLVMPThreadRWLockDestroy extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
-            UtilAccessCollectionWithBoundary.remove(ctx.rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext context) {
+            UtilAccessCollectionWithBoundary.remove(context.rwlockStorage, rwlock);
             return 0;
         }
     }
@@ -111,8 +111,8 @@ public class LLVMPThreadRWLockIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "attr")
     public abstract static class LLVMPThreadRWLockInit extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, LLVMPointer attr, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
-            UtilAccessCollectionWithBoundary.put(ctx.rwlockStorage, rwlock, new RWLock());
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, LLVMPointer attr, @CachedContext(LLVMLanguage.class) LLVMContext context) {
+            UtilAccessCollectionWithBoundary.put(context.rwlockStorage, rwlock, new RWLock());
             return 0;
         }
     }
@@ -120,14 +120,14 @@ public class LLVMPThreadRWLockIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "rwlock")
     public abstract static class LLVMPThreadRWLockRdlock extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
-            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(ctx.rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext context) {
+            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(context.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized
                 // but it works anyway on most implementations
                 // so we init it here
                 rwlockObj = new RWLock();
-                UtilAccessCollectionWithBoundary.put(ctx.rwlockStorage, rwlock, rwlockObj);
+                UtilAccessCollectionWithBoundary.put(context.rwlockStorage, rwlock, rwlockObj);
             }
             rwlockObj.readLock();
             return 0;
@@ -138,14 +138,14 @@ public class LLVMPThreadRWLockIntrinsics {
     public abstract static class LLVMPThreadRWLockTryrdlock extends LLVMBuiltin {
         // [EBUSY] when not lock not possible now
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
-            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(ctx.rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext context) {
+            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(context.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized
                 // but it works anyway on most implementations
                 // so we init it here
                 rwlockObj = new RWLock();
-                UtilAccessCollectionWithBoundary.put(ctx.rwlockStorage, rwlock, rwlockObj);
+                UtilAccessCollectionWithBoundary.put(context.rwlockStorage, rwlock, rwlockObj);
             }
             return rwlockObj.tryReadLock() ? 0 : LLVMAMD64Error.EBUSY;
         }
@@ -154,14 +154,14 @@ public class LLVMPThreadRWLockIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "rwlock")
     public abstract static class LLVMPThreadRWLockWrlock extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
-            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(ctx.rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext context) {
+            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(context.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized
                 // but it works anyway on most implementations
                 // so we init it here
                 rwlockObj = new RWLock();
-                UtilAccessCollectionWithBoundary.put(ctx.rwlockStorage, rwlock, rwlockObj);
+                UtilAccessCollectionWithBoundary.put(context.rwlockStorage, rwlock, rwlockObj);
             }
             return rwlockObj.writeLock() ? 0 : LLVMAMD64Error.EDEADLK;
         }
@@ -171,14 +171,14 @@ public class LLVMPThreadRWLockIntrinsics {
     public abstract static class LLVMPThreadRWLockTrywrlock extends LLVMBuiltin {
         // [EBUSY] when not lock not possible now
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
-            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(ctx.rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext context) {
+            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(context.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized
                 // but it works anyway on most implementations
                 // so we init it here
                 rwlockObj = new RWLock();
-                UtilAccessCollectionWithBoundary.put(ctx.rwlockStorage, rwlock, rwlockObj);
+                UtilAccessCollectionWithBoundary.put(context.rwlockStorage, rwlock, rwlockObj);
             }
             return rwlockObj.tryWriteLock() ? 0 : LLVMAMD64Error.EBUSY;
         }
@@ -187,8 +187,8 @@ public class LLVMPThreadRWLockIntrinsics {
     @NodeChild(type = LLVMExpressionNode.class, value = "rwlock")
     public abstract static class LLVMPThreadRWLockUnlock extends LLVMBuiltin {
         @Specialization
-        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext ctx) {
-            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(ctx.rwlockStorage, rwlock);
+        protected int doIntrinsic(VirtualFrame frame, LLVMPointer rwlock, @CachedContext(LLVMLanguage.class) LLVMContext context) {
+            RWLock rwlockObj = (RWLock) UtilAccessCollectionWithBoundary.get(context.rwlockStorage, rwlock);
             if (rwlockObj == null) {
                 // rwlock is not initialized, but no error code specified
                 return 0;
