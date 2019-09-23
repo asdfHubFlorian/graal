@@ -43,10 +43,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.llvm.runtime.nodes.intrinsics.multithreading.UtilCConstants;
 import org.graalvm.collections.EconomicMap;
 
 import com.oracle.truffle.api.CallTarget;
@@ -90,6 +92,21 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 
 public final class LLVMContext {
+    // the long-key is the thread-id
+    private final ConcurrentMap<Long, Object> threadReturnValueStorage;
+    private final ConcurrentMap<Long, Thread> threadStorage;
+
+    private final ArrayList<LLVMPointer> onceStorage;
+
+    public int curKeyVal;
+    public final Object keyLockObj;
+    public final ConcurrentMap<Integer, ConcurrentMap<Long, LLVMPointer>> keyStorage;
+    public final ConcurrentMap<Integer, LLVMPointer> destructorStorage;
+
+    public final Object callTargetLock;
+    public CallTarget pthreadCallTarget;
+    public final UtilCConstants pthreadConstants;
+
     private final List<Path> libraryPaths = new ArrayList<>();
     private final Object libraryPathsLock = new Object();
     @CompilationFinal private Path internalLibraryPath;
@@ -214,6 +231,18 @@ public final class LLVMContext {
         } else {
             tracer = null;
         }
+        // pthread storages
+        this.threadReturnValueStorage = new ConcurrentHashMap<>();
+        this.threadStorage = new ConcurrentHashMap<>();
+        this.onceStorage = new ArrayList<>();
+        this.curKeyVal = 0;
+        this.keyLockObj = new Object();
+        this.keyStorage = new ConcurrentHashMap<>();
+        this.destructorStorage = new ConcurrentHashMap<>();
+        this.callTargetLock = new Object();
+        this.pthreadCallTarget = null;
+        this.pthreadConstants = new UtilCConstants(this);
+
     }
 
     private static final class InitializeContextNode extends LLVMStatementNode {
@@ -395,6 +424,9 @@ public final class LLVMContext {
     }
 
     void dispose(LLVMMemory memory) {
+        // join all created pthread - threads
+        joinAllThreads();
+
         printNativeCallStatistic();
 
         if (isInitialized()) {
@@ -418,6 +450,18 @@ public final class LLVMContext {
 
         if (tracer != null) {
             tracer.dispose();
+        }
+    }
+
+    private void joinAllThreads() {
+        synchronized (threadStorage) {
+            for (Thread createdThread : threadStorage.values()) {
+                try {
+                    createdThread.join();
+                } catch (InterruptedException e) {
+                    // ignored
+                }
+            }
         }
     }
 
@@ -750,6 +794,42 @@ public final class LLVMContext {
 
     public synchronized List<LLVMThread> getRunningThreads() {
         return Collections.unmodifiableList(runningThreads);
+    }
+
+    public boolean shouldExecuteOnce(LLVMPointer onceControl) {
+        boolean shouldExecute = true;
+        synchronized (onceStorage) {
+            if (onceStorage.contains(onceControl)) {
+                shouldExecute = false;
+            } else {
+                onceStorage.add(onceControl);
+            }
+        }
+        return shouldExecute;
+    }
+
+    @TruffleBoundary
+    public synchronized Thread createThread(Runnable runnable) {
+        synchronized (threadStorage) {
+            final Thread thread = env.createThread(runnable);
+            threadStorage.put(thread.getId(), thread);
+            return thread;
+        }
+    }
+
+    @TruffleBoundary
+    public Thread getThread(long threadID) {
+        return threadStorage.get(threadID);
+    }
+
+    @TruffleBoundary
+    public void setThreadReturnValue(long threadId, Object value) {
+        threadReturnValueStorage.put(threadId, value);
+    }
+
+    @TruffleBoundary
+    public Object getThreadReturnValue(long threadId) {
+        return threadReturnValueStorage.get(threadId);
     }
 
     public void addDataLayout(DataLayout layout) {
