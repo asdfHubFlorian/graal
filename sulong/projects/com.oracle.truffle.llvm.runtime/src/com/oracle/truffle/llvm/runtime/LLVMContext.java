@@ -91,6 +91,7 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 
 public final class LLVMContext {
+    public boolean isCreateThreadAllowed;
     // the long-key is the thread-id
     private final ConcurrentMap<Long, Object> threadReturnValueStorage;
     private final ConcurrentMap<Long, Thread> threadStorage;
@@ -235,6 +236,7 @@ public final class LLVMContext {
             tracer = null;
         }
         // pthread storages
+        this.isCreateThreadAllowed = true;
         this.threadReturnValueStorage = new ConcurrentHashMap<>();
         this.threadStorage = new ConcurrentHashMap<>();
         this.onceStorage = new ArrayList<>();
@@ -429,6 +431,7 @@ public final class LLVMContext {
 
     void dispose(LLVMMemory memory) {
         // join all created pthread - threads
+        this.isCreateThreadAllowed = false;
         joinAllThreads();
 
         printNativeCallStatistic();

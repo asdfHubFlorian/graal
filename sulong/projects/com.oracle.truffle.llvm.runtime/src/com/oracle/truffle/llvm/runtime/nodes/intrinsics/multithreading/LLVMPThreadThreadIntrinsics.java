@@ -54,6 +54,9 @@ public final class LLVMPThreadThreadIntrinsics {
 
         @Specialization
         protected int doIntrinsic(LLVMPointer thread, @SuppressWarnings("unused") LLVMPointer attr, LLVMPointer startRoutine, LLVMPointer arg, @CachedContext(LLVMLanguage.class) LLVMContext context) {
+            if (!context.isCreateThreadAllowed) {
+                return 0; // program is shutting down now
+            }
             if (store == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 store = context.getLanguage().getNodeFactory().createStoreNode(LLVMInteropType.ValueKind.I64);
