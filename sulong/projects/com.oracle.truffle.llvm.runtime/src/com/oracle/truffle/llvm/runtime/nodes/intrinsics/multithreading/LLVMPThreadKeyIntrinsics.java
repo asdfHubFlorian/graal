@@ -50,7 +50,9 @@ public final class LLVMPThreadKeyIntrinsics {
                         @CachedContext(LLVMLanguage.class) LLVMContext context) {
             // add new key-value to key-storage, which is a
             // hashmap(key-value->hashmap(thread-id->specific-value))
-            return context.getpThreadContext().createPThreadKey(destructor);
+            int key = context.getpThreadContext().createPThreadKey(destructor);
+            // -1 means maximum number of keys exceeded
+            return key == -1 ? LLVMAMD64Error.EAGAIN : key;
         }
     }
 

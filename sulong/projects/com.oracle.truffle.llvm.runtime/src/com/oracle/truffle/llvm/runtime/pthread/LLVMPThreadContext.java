@@ -58,6 +58,8 @@ public final class LLVMPThreadContext {
 
     private final CallTarget pthreadCallTarget;
 
+    private final int keyMax = Integer.MAX_VALUE;
+
     public LLVMPThreadContext(LLVMContext context) {
         this.context = context;
 
@@ -92,8 +94,11 @@ public final class LLVMPThreadContext {
     public int createPThreadKey(LLVMPointer destructor) {
         synchronized (pThreadKeyLock) {
             // create new key
+            // check maximum number of keys
+            if (pThreadKey >= keyMax) {
+                return -1;
+            }
             pThreadKey++;
-
             // register the key
             registerPThreadKey(pThreadKey, destructor);
 
